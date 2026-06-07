@@ -254,12 +254,13 @@ export default {
       this.loading = true;
       levelInfoApi({ id })
         .then((res) => {
+          let data = res.level
           this.formData = {
             ...defaultForm(),
-            ...res,
-            giveIntegral: res.giveIntegral != null ? Number(res.giveIntegral) : 0,
-            experience: res.experience != null ? Number(res.experience) : 0,
-            upgradeValue: res.upgradeValue != null ? Number(res.upgradeValue) : 0,
+            ...data,
+            giveIntegral: data.giveIntegral != null ? Number(data.giveIntegral) : 0,
+            experience: data.experience != null ? Number(data.experience) : 0,
+            upgradeValue: data.upgradeValue != null ? Number(data.upgradeValue) : 0,
           };
           this.loading = false;
         })
