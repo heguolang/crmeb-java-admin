@@ -32,6 +32,18 @@ const distributionRouter = {
       name: 'distributionConfig',
       meta: { title: '分销配置', icon: '' },
     },
+    {
+      path: 'multiLevelRebate',
+      component: () => import('@/views/distribution/multiLevelRebate/index'),
+      name: 'multiLevelRebateConfig',
+      meta: { title: '多级返佣配置', icon: '' },
+    },
+    {
+      path: 'brokerageConfig',
+      component: () => import('@/views/distribution/brokerageConfig/index'),
+      name: 'brokerageConfig',
+      meta: { title: '会员返佣配置', icon: '' },
+    },
   ],
 };
 

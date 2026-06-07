@@ -3,55 +3,105 @@
     v-if="dialogVisible"
     :title="formData.id ? '编辑会员等级' : '添加会员等级'"
     :visible.sync="dialogVisible"
-    width="620px"
+    width="760px"
     :before-close="handleClose"
   >
-    <el-form :model="formData" :rules="rules" ref="user" label-width="120px" class="demo-ruleForm" v-loading="loading">
+    <el-form :model="formData" :rules="rules" ref="user" label-width="140px" class="demo-ruleForm" v-loading="loading">
+      <!-- 第一行：等级名称 -->
       <el-form-item label="等级名称：" prop="name">
-        <el-input v-model="formData.name" placeholder="如：创客、联创（仅为展示别名）" maxlength="50" />
+        <el-input v-model="formData.name" placeholder="如：创客、联创" maxlength="50" />
       </el-form-item>
-      <el-form-item label="等级序号：" prop="grade">
-        <el-input-number v-model="formData.grade" :min="1" :max="999" controls-position="right" placeholder="数字越大等级越高" />
-        <div class="form-tip">用于排序与升级优先级，联创应大于创客</div>
-      </el-form-item>
-      <el-form-item label="升级方式：" prop="upgradeType">
-        <el-radio-group v-model="formData.upgradeType">
-          <el-radio :label="1">累计消费达标</el-radio>
-          <el-radio :label="2">单笔订单达标</el-radio>
+
+      <!-- 第二行：会员等级 + 升级条件类型 -->
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="会员等级：" prop="grade">
+            <el-input-number v-model="formData.grade" :min="1" :max="999" controls-position="right" placeholder="数字越大等级越高" style="width: 100%" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12" v-if="!formData.id">
+          <el-form-item label="启用状态：">
+            <el-switch v-model="formData.isShow" active-text="开启" inactive-text="关闭" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-form-item label="升级条件：" prop="upgradeType">
+        <el-radio-group v-model="formData.upgradeType" @change="handleUpgradeTypeChange">
+          <el-radio :label="1">累计消费金额</el-radio>
+          <el-radio :label="2">累计订单数</el-radio>
+          <el-radio :label="3">两者同时满足</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item :label="upgradeAmountLabel" prop="experience">
-        <el-input-number
-          v-model="formData.experience"
-          :min="0"
-          :precision="0"
-          controls-position="right"
-          placeholder="请输入金额（元）"
-        />
-        <div class="form-tip">{{ upgradeAmountTip }}</div>
-      </el-form-item>
-      <el-form-item label="积分倍数：" prop="integralMultiple">
-        <el-input-number
-          v-model="formData.integralMultiple"
-          :min="0.01"
-          :max="99"
-          :step="0.1"
-          :precision="2"
-          controls-position="right"
-        />
-        <div class="form-tip">下单赠送积分 = 基础积分 × 倍数（业务逻辑后续接入）</div>
-      </el-form-item>
-      <el-form-item label="直推奖(%)：" prop="directBrokerageRate">
-        <el-input-number v-model="formData.directBrokerageRate" :min="0" :max="100" controls-position="right" />
-      </el-form-item>
-      <el-form-item label="团队奖(%)：" prop="teamBrokerageRate">
-        <el-input-number v-model="formData.teamBrokerageRate" :min="0" :max="100" controls-position="right" />
-        <div class="form-tip">团队奖比例配置（业务逻辑后续接入）</div>
-      </el-form-item>
-      <el-form-item label="享受折扣(%)：" prop="discount">
-        <el-input-number v-model="formData.discount" :min="1" :max="100" controls-position="right" />
-        <div class="form-tip">100 表示无折扣，90 表示九折</div>
-      </el-form-item>
+
+      <!-- 第三行：升级条件值（动态显示） -->
+      <el-row :gutter="20" v-if="formData.upgradeType === 1 || formData.upgradeType === 3">
+        <el-col :span="12">
+          <el-form-item label="累计消费(元)：" prop="experience">
+            <el-input-number
+              v-model="formData.experience"
+              :min="0"
+              :precision="0"
+              controls-position="right"
+              placeholder="请输入金额"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12" v-if="formData.upgradeType === 1 || formData.upgradeType === 3">
+          <el-form-item label="消费统计时机：" prop="consumptionTriggerType">
+            <el-select v-model="formData.consumptionTriggerType" placeholder="请选择" style="width: 100%">
+              <el-option label="已付款" :value="1" />
+              <el-option label="交易完成" :value="2" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="20" v-if="formData.upgradeType === 2 || formData.upgradeType === 3">
+        <el-col :span="12">
+          <el-form-item label="累计订单数：" prop="upgradeValue">
+            <el-input-number
+              v-model="formData.upgradeValue"
+              :min="0"
+              :precision="0"
+              controls-position="right"
+              placeholder="请输入订单数"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12" v-if="formData.upgradeType === 2 || formData.upgradeType === 3">
+          <el-form-item label="订单统计时机：" prop="orderCountTriggerType">
+            <el-select v-model="formData.orderCountTriggerType" placeholder="请选择" style="width: 100%">
+              <el-option label="已付款" :value="1" />
+              <el-option label="交易完成" :value="2" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 第四行：享受折扣 + 赠送积分 -->
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="享受折扣(%)：" prop="discount">
+            <el-input-number v-model="formData.discount" :min="1" :max="100" controls-position="right" style="width: 100%" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="赠送积分：" prop="giveIntegral">
+            <el-input-number
+              v-model="formData.giveIntegral"
+              :min="0"
+              :precision="0"
+              controls-position="right"
+              placeholder="每单固定赠送"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 第五行： 等级图标 -->
       <el-form-item label="等级图标：" prop="icon">
         <div class="upLoadPicBox" @click="modalPicTap('1', 'icon')">
           <div v-if="formData.icon" class="pictrue"><img :src="formData.icon" /></div>
@@ -60,11 +110,10 @@
           </div>
         </div>
       </el-form-item>
-      <el-form-item label="等级说明：">
-        <el-input v-model="formData.remark" type="textarea" :rows="2" placeholder="选填，如：累计消费达到126元升级" maxlength="255" />
-      </el-form-item>
-      <el-form-item v-if="!formData.id" label="启用状态：">
-        <el-switch v-model="formData.isShow" active-text="开启" inactive-text="关闭" />
+
+      <!-- 第六行：等级权益描述 -->
+      <el-form-item label="等级权益描述：">
+        <el-input v-model="formData.description" type="textarea" :rows="2" placeholder="选填，描述该等级的权益内容" maxlength="255" />
       </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
@@ -88,11 +137,13 @@ const defaultForm = () => ({
   grade: 1,
   discount: 100,
   experience: 0,
+  upgradeValue: 0,
   upgradeType: 1,
-  integralMultiple: 1,
-  directBrokerageRate: 0,
-  teamBrokerageRate: 0,
+  consumptionTriggerType: 1,
+  orderCountTriggerType: 1,
+  giveIntegral: 0,
   icon: '',
+  description: '',
   remark: '',
   id: null,
   isShow: true,
@@ -108,26 +159,60 @@ export default {
       rules: {
         name: [{ required: true, message: '请输入等级名称', trigger: 'blur' }],
         grade: [{ required: true, message: '请输入等级序号', trigger: 'blur' }],
-        upgradeType: [{ required: true, message: '请选择升级方式', trigger: 'change' }],
+        upgradeType: [{ required: true, message: '请选择升级条件', trigger: 'change' }],
         discount: [{ required: true, message: '请输入折扣', trigger: 'blur' }],
-        experience: [{ required: true, message: '请输入升级金额', trigger: 'blur' }],
-        integralMultiple: [{ required: true, message: '请输入积分倍数', trigger: 'blur' }],
-        directBrokerageRate: [{ required: true, message: '请输入直推奖比例', trigger: 'blur' }],
-        teamBrokerageRate: [{ required: true, message: '请输入团队奖比例', trigger: 'blur' }],
+        experience: [
+          {
+            validator: (rule, value, callback) => {
+              if ((this.formData.upgradeType === 1 || this.formData.upgradeType === 3) && (!value || value <= 0)) {
+                callback(new Error('请输入累计消费金额'));
+              } else {
+                callback();
+              }
+            },
+            trigger: 'blur',
+          },
+        ],
+        upgradeValue: [
+          {
+            validator: (rule, value, callback) => {
+              if ((this.formData.upgradeType === 2 || this.formData.upgradeType === 3) && (!value || value <= 0)) {
+                callback(new Error('请输入累计订单数'));
+              } else {
+                callback();
+              }
+            },
+            trigger: 'blur',
+          },
+        ],
+        consumptionTriggerType: [
+          {
+            validator: (rule, value, callback) => {
+              if ((this.formData.upgradeType === 1 || this.formData.upgradeType === 3) && !value) {
+                callback(new Error('请选择消费统计时机'));
+              } else {
+                callback();
+              }
+            },
+            trigger: 'change',
+          },
+        ],
+        orderCountTriggerType: [
+          {
+            validator: (rule, value, callback) => {
+              if ((this.formData.upgradeType === 2 || this.formData.upgradeType === 3) && !value) {
+                callback(new Error('请选择订单统计时机'));
+              } else {
+                callback();
+              }
+            },
+            trigger: 'change',
+          },
+        ],
+        giveIntegral: [{ required: true, message: '请输入赠送积分', trigger: 'blur' }],
         icon: [{ required: true, message: '请上传等级图标', trigger: 'change' }],
       },
     };
-  },
-  computed: {
-    upgradeAmountLabel() {
-      return this.formData.upgradeType === 2 ? '单笔金额(元)：' : '累计消费(元)：';
-    },
-    upgradeAmountTip() {
-      if (this.formData.upgradeType === 2) {
-        return '单笔订单实付达到该金额即可升级（如联创 600 元）';
-      }
-      return '用户累计实付/经验达到该值升级（如创客 126 元）';
-    },
   },
   watch: {
     dialogVisible(val) {
@@ -137,6 +222,22 @@ export default {
     },
   },
   methods: {
+    handleUpgradeTypeChange() {
+      // 切换升级类型时重置相关字段
+      if (this.formData.upgradeType === 1) {
+        this.formData.upgradeValue = 0;
+        this.formData.orderCountTriggerType = 1;
+      } else if (this.formData.upgradeType === 2) {
+        this.formData.experience = 0;
+        this.formData.consumptionTriggerType = 1;
+      }
+      // 清除验证
+      this.$nextTick(() => {
+        if (this.$refs.user) {
+          this.$refs.user.clearValidate();
+        }
+      });
+    },
     modalPicTap(tit, num) {
       const _this = this;
       this.$modalUpload(
@@ -156,7 +257,9 @@ export default {
           this.formData = {
             ...defaultForm(),
             ...res,
-            integralMultiple: res.integralMultiple != null ? Number(res.integralMultiple) : 1,
+            giveIntegral: res.giveIntegral != null ? Number(res.giveIntegral) : 0,
+            experience: res.experience != null ? Number(res.experience) : 0,
+            upgradeValue: res.upgradeValue != null ? Number(res.upgradeValue) : 0,
           };
           this.loading = false;
         })
@@ -182,11 +285,13 @@ export default {
           grade: this.formData.grade,
           discount: this.formData.discount,
           experience: this.formData.experience,
+          upgradeValue: this.formData.upgradeValue,
           upgradeType: this.formData.upgradeType,
-          integralMultiple: this.formData.integralMultiple,
-          directBrokerageRate: this.formData.directBrokerageRate,
-          teamBrokerageRate: this.formData.teamBrokerageRate,
+          consumptionTriggerType: this.formData.consumptionTriggerType,
+          orderCountTriggerType: this.formData.orderCountTriggerType,
+          giveIntegral: this.formData.giveIntegral,
           icon: this.formData.icon,
+          description: this.formData.description || '',
           remark: this.formData.remark || '',
           isShow: this.formData.isShow !== false,
         };
@@ -215,5 +320,43 @@ export default {
   color: #909399;
   line-height: 1.5;
   margin-top: 4px;
+}
+
+.demo-ruleForm {
+  ::v-deep .el-form-item {
+    margin-bottom: 14px;
+  }
+
+  ::v-deep .el-input-number {
+    width: 100%;
+  }
+}
+
+.upLoadPicBox {
+  cursor: pointer;
+  .pictrue {
+    width: 80px;
+    height: 80px;
+    border: 1px dashed #d9d9d9;
+    border-radius: 4px;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+  .upLoad {
+    width: 80px;
+    height: 80px;
+    border: 1px dashed #d9d9d9;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .cameraIconfont {
+      font-size: 24px;
+      color: #8c939d;
+    }
+  }
 }
 </style>

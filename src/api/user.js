@@ -166,6 +166,16 @@ export function levelListApi() {
 }
 
 /**
+ * 会员等级 全部列表（不分页）
+ */
+export function levelAllApi() {
+  return request({
+    url: `/admin/system/user/level/all`,
+    method: 'get',
+  });
+}
+
+/**
  * 会员等级 新增
  * @param pram
  */
