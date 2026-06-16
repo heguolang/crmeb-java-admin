@@ -44,6 +44,18 @@ const distributionRouter = {
       name: 'brokerageConfig',
       meta: { title: '会员返佣配置', icon: '' },
     },
+    {
+      path: 'teamGrade',
+      component: () => import('@/views/distribution/teamGrade/index'),
+      name: 'TeamGrade',
+      meta: { title: '团队等级', icon: '' },
+    },
+    {
+      path: 'teamLevelConfig',
+      component: () => import('@/views/distribution/teamLevelConfig/index'),
+      name: 'TeamLevelConfig',
+      meta: { title: '团队等级配置', icon: '' },
+    },
   ],
 };
 
