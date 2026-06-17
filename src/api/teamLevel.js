@@ -110,3 +110,21 @@ export function teamLevelConfigDeleteApi(teamLevelId) {
     method: 'post',
   });
 }
+
+/** 团队关联用户 -- 列表 */
+export function teamLevelUserListApi(params) {
+  return request({
+    url: '/admin/system/team/level/user/list',
+    method: 'get',
+    params,
+  });
+}
+
+/** 团队变更记录 -- 列表 */
+export function teamLevelRecordListApi(params) {
+  return request({
+    url: '/admin/system/team/level/record/list',
+    method: 'get',
+    params,
+  });
+}

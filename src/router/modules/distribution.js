@@ -56,6 +56,18 @@ const distributionRouter = {
       name: 'TeamLevelConfig',
       meta: { title: '团队等级配置', icon: '' },
     },
+    {
+      path: 'teamUser',
+      component: () => import('@/views/distribution/teamUser/index'),
+      name: 'TeamLevelUser',
+      meta: { title: '团队关联用户', icon: '' },
+    },
+    {
+      path: 'teamRecord',
+      component: () => import('@/views/distribution/teamRecord/index'),
+      name: 'TeamLevelRecord',
+      meta: { title: '团队变更记录', icon: '' },
+    },
   ],
 };
 
