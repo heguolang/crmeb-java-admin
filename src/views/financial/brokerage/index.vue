@@ -4,9 +4,25 @@
       <div class="padding-add">
         <el-form label-width="75px" :inline="true">
           <el-form-item label="变动类型：">
-            <el-select @change="getList(1)" class="selWidth" v-model="tableFrom.type" clearable placeholder="请选择">
+            <el-select @change="onTypeChange" class="selWidth" v-model="tableFrom.type" clearable placeholder="请选择">
               <el-option v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item v-if="tableFrom.type === 1" label="返佣细分：">
+            <el-select
+              @change="getList(1)"
+              class="selWidth"
+              v-model="tableFrom.brokerageLevel"
+              clearable
+              placeholder="全部订单返佣"
+            >
+              <el-option
+                v-for="item in brokerageLevelOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
             </el-select>
           </el-form-item>
         </el-form>
@@ -29,7 +45,15 @@
             >
           </template>
         </el-table-column>
-        <el-table-column prop="mark" label="变动信息" min-width="150" />
+        <el-table-column prop="mark" label="变动信息" min-width="200" show-overflow-tooltip />
+        <el-table-column label="佣金类型" min-width="120">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.linkType === 'order'" size="mini" :type="getBrokerageLevelTagType(scope.row.brokerageLevel)">
+              {{ getBrokerageLevelLabel(scope.row.brokerageLevel) }}
+            </el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="变动类型" min-width="130" prop="title" />
         <el-table-column prop="userName" label="用户信息" min-width="150" />
         <el-table-column label="时间" width="170" prop="updateTime"> </el-table-column>
@@ -52,6 +76,7 @@
 
 <script>
 import { brokerageListApi } from '@/api/financial';
+import { brokerageLevelOptions, getBrokerageLevelLabel, getBrokerageLevelTagType } from '@/utils/brokerage';
 export default {
   name: 'AccountsCapital',
   data() {
@@ -64,6 +89,7 @@ export default {
       listLoading: true,
       tableFrom: {
         type: '',
+        brokerageLevel: undefined,
         page: 1,
         limit: 20,
       },
@@ -81,6 +107,7 @@ export default {
         { value: 4, label: '提现成功' },
         { value: 5, label: '佣金转余额' },
       ],
+      brokerageLevelOptions,
     };
   },
   mounted() {
@@ -88,6 +115,14 @@ export default {
     this.getList();
   },
   methods: {
+    getBrokerageLevelLabel,
+    getBrokerageLevelTagType,
+    onTypeChange() {
+      if (this.tableFrom.type !== 1) {
+        this.tableFrom.brokerageLevel = undefined;
+      }
+      this.getList(1);
+    },
     // 列表
     getList(num) {
       this.listLoading = true;
