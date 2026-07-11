@@ -128,3 +128,12 @@ export function teamLevelRecordListApi(params) {
     params,
   });
 }
+
+/** 团队奖资金记录 -- 列表 */
+export function teamBrokerageRecordListApi(params) {
+  return request({
+    url: '/admin/system/team/level/brokerage/record',
+    method: 'get',
+    params,
+  });
+}
