@@ -205,23 +205,44 @@ function flattenSiderMenu(menuList, newList) {
 export { flattenSiderMenu };
 
 export const findFirstNonNullChildren = (arr) => {
-  // 如果数组为空，返回null
   if (!arr || arr.length === 0) {
     return null;
   }
-  // 找到第一个对象
-  const firstObj = arr[0];
-  // 如果第一个对象没有children属性，返回该对象
-  if (!firstObj.children.length) {
-    return firstObj;
+  for (const item of arr) {
+    const children = item.children;
+    if (children && children.length) {
+      const found = findFirstNonNullChildren(children);
+      if (found && found.path) return found;
+      // 子级都是按钮等无 path 节点时，回退到当前菜单 path
+      if (item.path) return item;
+    } else if (item.path) {
+      return item;
+    }
   }
+  return null;
+};
 
-  // 如果第一个对象的children属性是数组，
-  // 递归查找children属性中的第一个非null children属性
-  if (firstObj.children.length && Array.isArray(firstObj.children)) {
-    return findFirstNonNullChildren(firstObj.children);
+/**
+ * 在菜单树中找第一个「前端路由真正存在」的 path，避免点目录落到未打包页面进 404
+ */
+export const findFirstMatchedRoutePath = (arr, router) => {
+  if (!arr || !arr.length) return null;
+  if (!router) {
+    const first = findFirstNonNullChildren(arr);
+    return first && first.path ? first.path : null;
   }
-  // 如果数组中没有非null children属性，返回null
+  for (const item of arr) {
+    if (item.children && item.children.length) {
+      const nested = findFirstMatchedRoutePath(item.children, router);
+      if (nested) return nested;
+    }
+    if (!item.path) continue;
+    const resolved = router.resolve(item.path).route;
+    const matched = resolved.matched || [];
+    if (!matched.length) continue;
+    const hit404 = matched.some((m) => m.path === '*' || m.path === '/404') || resolved.path === '/404';
+    if (!hit404) return item.path;
+  }
   return null;
 };
 

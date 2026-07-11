@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import { getMenuSider, getHeaderName, findFirstNonNullChildren } from '@/utils/system.js';
+import { getMenuSider, getHeaderName, findFirstMatchedRoutePath, findFirstNonNullChildren } from '@/utils/system.js';
 import Logo from '@/layout/logo/index.vue';
 
 export default {
@@ -95,9 +95,12 @@ export default {
     },
     // 菜单高亮点击事件
     onColumnsAsideMenuClick(v) {
-      let { path, redirect } = v;
+      let { path } = v;
       if (v.children.length) {
-        this.$router.push(findFirstNonNullChildren(v.children).path);
+        const targetPath =
+          findFirstMatchedRoutePath(v.children, this.$router) ||
+          (findFirstNonNullChildren(v.children) || {}).path;
+        if (targetPath) this.$router.push(targetPath);
       } else {
         this.$router.push(path);
       }
