@@ -210,6 +210,7 @@ export default {
       attrInfo: {},
       isDisabled: true,
       tempRoute: {},
+      attrWatchLock: false,
     };
   },
   computed: {
@@ -227,7 +228,11 @@ export default {
   watch: {
     'formValidate.attr': {
       handler: function (val) {
-        this.watCh(val); //重要！！！
+        // 详情回填过程中勿跑规格笛卡尔积，否则会卡死页面
+        if (this.attrWatchLock) return;
+        if (!this.formValidate.specType || !val || !val.length) return;
+        if (!val.every((a) => a && Array.isArray(a.attrValue))) return;
+        this.watCh(val);
       },
       immediate: false,
       deep: true,
@@ -235,9 +240,6 @@ export default {
   },
   created() {
     this.tempRoute = Object.assign({}, this.$route);
-    if (this.formValidate.specType) {
-      this.$watch('formValidate.attr', this.watCh);
-    }
   },
   mounted() {
     this.getInfo(this.productId);
@@ -275,17 +277,25 @@ export default {
     // 详情
     getInfo(id) {
       this.fullscreenLoading = true;
+      this.attrWatchLock = true;
       productDetailApi(id)
         .then(async (res) => {
           // this.isAttr = true;
           let info = res;
+          // 先转成前端规格结构，避免 deep watch 吃到接口原始 attr 后卡死
+          const attrs = info.specType
+            ? (info.attr || []).map((item) => ({
+                attrName: item.attrName,
+                attrValue: (item.attrValues || '').split(',').filter(Boolean),
+              }))
+            : [];
           this.formValidate = {
             image: this.$selfUtil.setDomain(info.image),
             sliderImage: info.sliderImage,
-            sliderImages: JSON.parse(info.sliderImage),
+            sliderImages: JSON.parse(info.sliderImage || '[]'),
             storeName: info.storeName,
             keyword: info.keyword,
-            cateIds: info.cateId.split(','), // 商品分类id
+            cateIds: info.cateId ? info.cateId.split(',') : [], // 商品分类id
             cateId: info.cateId, // 商品分类id传值
             unitName: info.unitName,
             sort: info.sort,
@@ -296,7 +306,7 @@ export default {
             isHot: info.isHot,
             isBest: info.isBest,
             tempId: info.tempId,
-            attr: info.attr,
+            attr: attrs,
             attrValue: info.attrValue,
             selectRule: info.selectRule,
             isSub: info.isSub,
@@ -327,30 +337,25 @@ export default {
               this.$set(this.formValidate, 'coupons', newArr); //在编辑回显时，让返回数据中的优惠券id，通过接口匹配显示,
             }
           });
-          let imgs = JSON.parse(info.sliderImage);
+          let imgs = JSON.parse(info.sliderImage || '[]');
           let imgss = [];
           Object.keys(imgs).map((i) => {
             imgss.push(this.$selfUtil.setDomain(imgs[i]));
           });
           this.formValidate.sliderImages = [...imgss];
-          if (this.getFileType(this.formValidate.sliderImages[0]) == 'video') {
+          if (this.formValidate.sliderImages[0] && this.getFileType(this.formValidate.sliderImages[0]) == 'video') {
             //如果返回数据轮播图的第一张是视频，就将其赋值给videoLink做渲染，同时将其在轮播图中删除
             this.$set(this.formValidate, 'videoLink', this.formValidate.sliderImages[0]);
             this.formValidate.sliderImages.splice(0, 1);
           }
           this.productGetRule();
           if (info.specType) {
-            this.formValidate.attr = info.attr.map((item) => {
-              return {
-                attrName: item.attrName,
-                attrValue: item.attrValues.split(','),
-              };
-            });
-            this.ManyAttrValue = info.attrValue;
+            this.ManyAttrValue = info.attrValue || [];
+            this.attrInfo = {};
             this.ManyAttrValue.forEach((val) => {
               val.image = this.$selfUtil.setDomain(val.image);
-              val.attrValue = JSON.parse(val.attrValue);
-              this.attrInfo[Object.values(val.attrValue).sort().join('/')] = val;
+              val.attrValue = typeof val.attrValue === 'string' ? JSON.parse(val.attrValue) : val.attrValue;
+              this.attrInfo[Object.values(val.attrValue || {}).sort().join('/')] = val;
             });
             /***多规格商品如果被删除过sku，优先展示api返回的数据,否则会有没有删除的错觉***/
             let manyAttr = this.attrFormat(this.formValidate.attr);
@@ -363,17 +368,18 @@ export default {
             /*******/
             const tmp = {};
             const tmpTab = {};
-            this.formValidate.attr.forEach((o, i) => {
-              // tmp['value' + i] = { title: o.attrName }
-              // tmpTab['value' + i] = ''
+            this.formValidate.attr.forEach((o) => {
               tmp[o.attrName] = { title: o.attrName };
               tmpTab[o.attrName] = '';
             });
 
             // 此处手动实现后台原本value0 value1的逻辑
-            this.formValidate.attrValue.forEach((item) => {
-              for (let attrValueKey in item.attrValue) {
-                item[attrValueKey] = item.attrValue[attrValueKey];
+            (this.formValidate.attrValue || []).forEach((item) => {
+              const parsed =
+                typeof item.attrValue === 'string' ? JSON.parse(item.attrValue || '{}') : item.attrValue || {};
+              item.attrValue = parsed;
+              for (let attrValueKey in parsed) {
+                item[attrValueKey] = parsed[attrValueKey];
               }
             });
 
@@ -385,11 +391,14 @@ export default {
             // this.formValidate.attr = [] //单规格商品规格设置为空
           }
           this.getInit();
-          console.log(this.formValidate);
           this.fullscreenLoading = false;
+          this.$nextTick(() => {
+            this.attrWatchLock = false;
+          });
         })
         .catch((res) => {
           this.fullscreenLoading = false;
+          this.attrWatchLock = false;
           this.$message.error(res.message);
         });
     },
@@ -436,20 +445,22 @@ export default {
       return 'other';
     },
     watCh(val) {
+      if (!val || !val.length) return;
+      if (!val.every((a) => a && Array.isArray(a.attrValue))) return;
       const tmp = {};
       const tmpTab = {};
-      this.formValidate.attr.forEach((o, i) => {
+      this.formValidate.attr.forEach((o) => {
         tmp[o.attrName] = { title: o.attrName };
         tmpTab[o.attrName] = '';
       });
       this.ManyAttrValue = this.attrFormat(val);
-      this.ManyAttrValue.forEach((val, index) => {
-        const key = Object.values(val.attrValue).sort().join('/');
+      this.ManyAttrValue.forEach((row, index) => {
+        const key = Object.values(row.attrValue || {}).sort().join('/');
         if (this.attrInfo[key]) this.ManyAttrValue[index] = this.attrInfo[key];
       });
-      this.attrInfo = [];
-      this.ManyAttrValue.forEach((val) => {
-        this.attrInfo[Object.values(val.attrValue).sort().join('/')] = val;
+      this.attrInfo = {};
+      this.ManyAttrValue.forEach((row) => {
+        this.attrInfo[Object.values(row.attrValue || {}).sort().join('/')] = row;
       });
       this.manyTabTit = tmp;
       this.manyTabDate = tmpTab;

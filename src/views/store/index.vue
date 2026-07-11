@@ -194,7 +194,7 @@
       title="编辑库存"
       :visible.sync="drawer"
       :direction="direction"
-      :size="1500"
+      size="80%"
       class="showHeader"
       :before-close="handleCloseEdit"
     >
