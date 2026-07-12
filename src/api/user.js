@@ -71,6 +71,17 @@ export function userLevelUpdateApi(data) {
 }
 
 /**
+ * 修改用户团队等级
+ */
+export function userTeamLevelUpdateApi(data) {
+  return request({
+    url: `/admin/user/update/team/level`,
+    method: 'post',
+    data,
+  });
+}
+
+/**
  * 会员管理 详情
  * @param pram
  */

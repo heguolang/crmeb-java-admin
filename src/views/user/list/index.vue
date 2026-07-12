@@ -262,6 +262,11 @@
                   >修改用户等级</el-dropdown-item
                 >
                 <el-dropdown-item
+                  @click.native="onTeamLevel(scope.row.uid, scope.row.teamLevel)"
+                  v-if="checkPermi(['admin:user:update:level'])"
+                  >修改用户团队等级</el-dropdown-item
+                >
+                <el-dropdown-item
                   @click.native="setExtension(scope.row)"
                   v-if="checkPermi(['admin:user:update:spread'])"
                   >修改上级推广人</el-dropdown-item
@@ -442,6 +447,10 @@
     <el-dialog title="设置" :visible.sync="levelVisible" width="540px" :before-close="Close">
       <level-edit :levelInfo="levelInfo" :levelList="levelList"></level-edit>
     </el-dialog>
+    <!-- 用户团队等级 -->
+    <el-dialog title="修改用户团队等级" :visible.sync="teamLevelVisible" width="540px" :before-close="CloseTeamLevel">
+      <team-level-edit :teamLevelInfo="teamLevelInfo" :teamLevelList="teamLevelList"></team-level-edit>
+    </el-dialog>
   </div>
 </template>
 
@@ -457,10 +466,12 @@ import {
   updateSpreadApi,
   updatePhoneApi,
 } from '@/api/user';
+import { teamLevelAllApi } from '@/api/teamLevel';
 import { spreadClearApi } from '@/api/distribution';
 import editFrom from './edit';
 import userDetails from './userDetails';
 import levelEdit from './level';
+import teamLevelEdit from './teamLevel';
 import userList from '@/components/userList';
 import * as logistics from '@/api/logistics.js';
 import Cookies from 'js-cookie';
@@ -468,7 +479,7 @@ import { checkPermi } from '@/utils/permission'; // 权限判断函数
 import { Debounce } from '@/utils/validate';
 export default {
   name: 'UserIndex',
-  components: { editFrom, userDetails, userList, levelEdit },
+  components: { editFrom, userDetails, userList, levelEdit, teamLevelEdit },
   filters: {
     sexFilter(status) {
       const statusMap = {
@@ -491,6 +502,7 @@ export default {
       extensionVisible: false,
       userVisible: false,
       levelInfo: '',
+      teamLevelInfo: {},
       pickerOptions: this.$timeOptions,
       loadingBtn: false,
       PointValidateForm: {
@@ -506,6 +518,7 @@ export default {
       userIds: '',
       dialogVisible: false,
       levelVisible: false,
+      teamLevelVisible: false,
       levelData: [],
       groupData: [],
       labelData: [],
@@ -560,6 +573,7 @@ export default {
         xs: 24,
       },
       levelList: [],
+      teamLevelList: [],
       labelLists: [],
       groupList: [],
       selectedData: [],
@@ -593,6 +607,7 @@ export default {
     this.getList();
     this.groupLists();
     this.levelLists();
+    this.teamLevelLists();
     this.getTagList();
     if (checkPermi(['admin:system:city:list:tree'])) this.getCityList();
   },
@@ -730,6 +745,9 @@ export default {
     Close() {
       this.levelVisible = false;
     },
+    CloseTeamLevel() {
+      this.teamLevelVisible = false;
+    },
     // 账户详情
     onDetails(id) {
       this.uid = id;
@@ -748,6 +766,14 @@ export default {
       userLevel.level = level;
       this.levelInfo = userLevel;
       this.levelVisible = true;
+    },
+    // 团队等级
+    onTeamLevel(uid, teamLevel) {
+      this.teamLevelInfo = {
+        uid: uid,
+        teamLevel: teamLevel || 0,
+      };
+      this.teamLevelVisible = true;
     },
     // 积分余额
     editPoint(id) {
@@ -895,6 +921,16 @@ export default {
         this.levelList = res;
         localStorage.setItem('single-admin-levelKey', JSON.stringify(res));
       });
+    },
+    // 团队等级列表
+    teamLevelLists() {
+      teamLevelAllApi()
+        .then((res) => {
+          this.teamLevelList = res || [];
+        })
+        .catch(() => {
+          this.teamLevelList = [];
+        });
     },
     // 列表
     getList(num) {
