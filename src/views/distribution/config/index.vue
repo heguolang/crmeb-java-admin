@@ -141,6 +141,24 @@
             placeholder="用户提现最低金额"
           ></el-input-number>
         </el-form-item>
+        <el-form-item prop="userExtractFee">
+          <span slot="label">
+            <span>提现手续费：</span>
+            <el-tooltip class="item" effect="dark" content="每次提现固定收取的手续费（元），从提现金额中扣除，实到=提现金额-手续费" placement="top-start">
+              <i class="el-icon-warning-outline" />
+            </el-tooltip>
+          </span>
+          <el-input-number
+            controls-position="right"
+            v-model="promoterForm.userExtractFee"
+            :min="0"
+            :precision="2"
+            :step="0.1"
+            class="selWidth"
+            placeholder="提现手续费（元）"
+          ></el-input-number>
+          <span> 元</span>
+        </el-form-item>
         <el-form-item prop="userExtractBank">
           <span slot="label">
             <span>提现银行卡：</span>

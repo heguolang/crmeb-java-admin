@@ -16,6 +16,14 @@
             <div>{{ userDetailData.integral }}</div>
           </div>
           <div class="info-row-item">
+            <div class="info-row-item-title">消费券</div>
+            <div>{{ userDetailData.consumeVoucher || 0 }}</div>
+          </div>
+          <div class="info-row-item">
+            <div class="info-row-item-title">权证</div>
+            <div>{{ userDetailData.warrant || 0 }}</div>
+          </div>
+          <div class="info-row-item">
             <div class="info-row-item-title">经验</div>
             <div>{{ userDetailData.experience }}</div>
           </div>
@@ -58,6 +66,14 @@
                     <div class="item">
                       <div>用户电话：</div>
                       <div class="value">{{ userDetailData.phone }}</div>
+                    </div>
+                    <div class="item">
+                      <div>权证地址：</div>
+                      <div class="value">{{ userDetailData.warrantAddress || '-' }}</div>
+                    </div>
+                    <div class="item">
+                      <div>地址绑定时间：</div>
+                      <div class="value">{{ userDetailData.warrantAddressTime || '-' }}</div>
                     </div>
                     <div class="item">
                       <div>生日：</div>

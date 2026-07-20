@@ -233,6 +233,9 @@
         </el-table-column>
         <el-table-column prop="nowMoney" label="余额" min-width="100" v-if="checkedCities.includes('余额')" />
         <el-table-column prop="integral" label="积分" min-width="100" v-if="checkedCities.includes('积分')" />
+        <el-table-column prop="consumeVoucher" label="消费券" min-width="100" v-if="checkedCities.includes('消费券')" />
+        <el-table-column prop="warrant" label="权证" min-width="100" v-if="checkedCities.includes('权证')" />
+        <el-table-column prop="warrantAddress" label="权证地址" min-width="180" show-overflow-tooltip v-if="checkedCities.includes('权证地址')" />
         <el-table-column label="操作" width="160" fixed="right" :render-header="renderHeader">
           <template slot-scope="scope">
             <a @click="onDetails(scope.row.uid)" v-hasPermi="['admin:user:topdetail']">详情</a>
@@ -246,6 +249,11 @@
                   @click.native="editPoint(scope.row.uid)"
                   v-if="checkPermi(['admin:user:operate:founds'])"
                   >积分余额</el-dropdown-item
+                >
+                <el-dropdown-item
+                  @click.native="editVoucherWarrant(scope.row.uid)"
+                  v-if="checkPermi(['admin:user:operate:founds'])"
+                  >消费券权证</el-dropdown-item
                 >
                 <el-dropdown-item @click.native="setBatch('group', scope.row)" v-if="checkPermi(['admin:user:group'])"
                   >设置分组</el-dropdown-item
@@ -441,6 +449,53 @@
         <el-button type="primary" :loading="loadingBtn" @click="submitPointForm('PointValidateForm')">确定</el-button>
       </span>
     </el-dialog>
+    <!--消费券权证-->
+    <el-dialog
+      title="消费券权证"
+      :visible.sync="VisibleVoucher"
+      width="540px"
+      :close-on-click-modal="false"
+      :before-close="handleVoucherClose"
+    >
+      <el-form :model="VoucherValidateForm" ref="VoucherValidateForm" label-width="100px">
+        <el-form-item label="修改消费券：">
+          <el-radio-group v-model="VoucherValidateForm.voucherType">
+            <el-radio :label="1">增加</el-radio>
+            <el-radio :label="2">减少</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="消费券：">
+          <el-input-number
+            controls-position="right"
+            v-model="VoucherValidateForm.voucherValue"
+            :precision="2"
+            :step="0.1"
+            :min="0"
+            :max="99999999"
+          />
+        </el-form-item>
+        <el-form-item label="修改权证：">
+          <el-radio-group v-model="VoucherValidateForm.warrantType">
+            <el-radio :label="1">增加</el-radio>
+            <el-radio :label="2">减少</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="权证：">
+          <el-input-number
+            controls-position="right"
+            v-model="VoucherValidateForm.warrantValue"
+            :precision="2"
+            :step="0.1"
+            :min="0"
+            :max="99999999"
+          />
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleVoucherClose">取消</el-button>
+        <el-button type="primary" :loading="loadingVoucherBtn" @click="submitVoucherForm">确定</el-button>
+      </span>
+    </el-dialog>
     <!--账户详情-->
     <user-details ref="userDetailFrom" :userNo="uid"></user-details>
     <!-- 用户等级 -->
@@ -466,6 +521,7 @@ import {
   updateSpreadApi,
   updatePhoneApi,
 } from '@/api/user';
+import { voucherWarrantOperateApi } from '@/api/marketing';
 import { teamLevelAllApi } from '@/api/teamLevel';
 import { spreadClearApi } from '@/api/distribution';
 import editFrom from './edit';
@@ -514,6 +570,15 @@ export default {
       },
       loadingPoint: false,
       VisiblePoint: false,
+      VisibleVoucher: false,
+      loadingVoucherBtn: false,
+      VoucherValidateForm: {
+        voucherType: 1,
+        voucherValue: 0,
+        warrantType: 1,
+        warrantValue: 0,
+        uid: '',
+      },
       visible: false,
       userIds: '',
       dialogVisible: false,
@@ -593,8 +658,8 @@ export default {
       idKey: 'uid',
       card_select_show: false,
       checkAll: false,
-      checkedCities: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '手机号', '余额', '积分'],
-      columnData: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '手机号', '余额', '积分'],
+      checkedCities: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '手机号', '余额', '积分', '消费券', '权证', '权证地址'],
+      columnData: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '手机号', '余额', '积分', '消费券', '权证', '权证地址'],
       isIndeterminate: true,
     };
   },
@@ -780,6 +845,34 @@ export default {
       this.uid = id;
       this.VisiblePoint = true;
     },
+    editVoucherWarrant(id) {
+      this.uid = id;
+      this.VisibleVoucher = true;
+    },
+    submitVoucherForm: Debounce(function () {
+      this.VoucherValidateForm.uid = this.uid;
+      this.loadingVoucherBtn = true;
+      voucherWarrantOperateApi(this.VoucherValidateForm)
+        .then(() => {
+          this.$message.success('设置成功');
+          this.loadingVoucherBtn = false;
+          this.handleVoucherClose();
+          this.getList();
+        })
+        .catch(() => {
+          this.loadingVoucherBtn = false;
+        });
+    }),
+    handleVoucherClose() {
+      this.VisibleVoucher = false;
+      this.VoucherValidateForm = {
+        voucherType: 1,
+        voucherValue: 0,
+        warrantType: 1,
+        warrantValue: 0,
+        uid: '',
+      };
+    },
     // 积分余额
     submitPointForm: Debounce(function (formName) {
       this.$refs[formName].validate((valid) => {
@@ -956,6 +1049,10 @@ export default {
       this.checkedCities = this.$cache.local.has('user_stroge')
         ? this.$cache.local.getJSON('user_stroge')
         : this.checkedCities;
+      // 合并新增列，避免旧缓存隐藏消费券/权证列
+      const merged = Array.from(new Set([...(this.checkedCities || []), '消费券', '权证', '权证地址']));
+      this.checkedCities = merged.filter((item) => this.columnData.includes(item));
+      this.$cache.local.setJSON('user_stroge', this.checkedCities);
       this.$set(this, 'card_select_show', false);
     },
     // 设置选中的方法

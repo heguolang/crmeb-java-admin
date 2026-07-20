@@ -162,6 +162,32 @@ const marketingRouter = {
       ],
     },
     {
+      path: 'voucherWarrant',
+      component: () => import('@/views/marketing/voucherWarrant/index'),
+      name: 'VoucherWarrant',
+      meta: { title: '消费券权证', icon: '' },
+      children: [
+        {
+          path: 'config',
+          component: () => import('@/views/marketing/voucherWarrant/config/index'),
+          name: 'voucherWarrantConfig',
+          meta: { title: '消费券权证配置', icon: '' },
+        },
+        {
+          path: 'voucherLog',
+          component: () => import('@/views/marketing/voucherWarrant/voucherLog/index'),
+          name: 'voucherLog',
+          meta: { title: '消费券流水', icon: '' },
+        },
+        {
+          path: 'warrantLog',
+          component: () => import('@/views/marketing/voucherWarrant/warrantLog/index'),
+          name: 'warrantLog',
+          meta: { title: '权证流水', icon: '' },
+        },
+      ],
+    },
+    {
       path: 'atmosphere',
       name: 'atmosphere',
       meta: {

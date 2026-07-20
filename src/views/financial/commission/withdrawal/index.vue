@@ -72,7 +72,9 @@
             <p>用户id：{{ scope.row.uid }}</p>
           </template>
         </el-table-column>
-        <el-table-column prop="extractPrice" label="提现金额" min-width="120" />
+        <el-table-column prop="extractPrice" label="提现金额" min-width="100" />
+        <el-table-column prop="extractFee" label="手续费" min-width="90" />
+        <el-table-column prop="arrivePrice" label="实到金额" min-width="100" />
         <el-table-column label="提现方式" min-width="100">
           <template slot-scope="scope">
             <span>{{ scope.row.extractType | extractTypeFilter }}</span>

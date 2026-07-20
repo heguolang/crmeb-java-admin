@@ -120,6 +120,62 @@ export function integralListApi(params, data) {
 }
 
 /**
+ * 消费券权证配置 - 获取
+ */
+export function voucherWarrantConfigGetApi() {
+  return request({
+    url: '/admin/voucher/config',
+    method: 'get',
+  });
+}
+
+/**
+ * 消费券权证配置 - 保存
+ */
+export function voucherWarrantConfigSaveApi(data) {
+  return request({
+    url: '/admin/voucher/config',
+    method: 'post',
+    data,
+  });
+}
+
+/**
+ * 消费券流水
+ */
+export function voucherRecordListApi(params, data) {
+  return request({
+    url: '/admin/voucher/record/list',
+    method: 'post',
+    params,
+    data,
+  });
+}
+
+/**
+ * 权证流水
+ */
+export function warrantRecordListApi(params, data) {
+  return request({
+    url: '/admin/voucher/warrant/record/list',
+    method: 'post',
+    params,
+    data,
+  });
+}
+
+/**
+ * 后台调整消费券/权证
+ */
+export function voucherWarrantOperateApi(data) {
+  return request({
+    url: '/admin/voucher/operate',
+    method: 'post',
+    data,
+  });
+}
+
+/**
  * 秒杀配置 列表
  * @param pram
  */
