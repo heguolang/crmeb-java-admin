@@ -60,6 +60,12 @@ const financialRouter = {
           name: 'Monitor',
           meta: { title: '资金监控', icon: '' },
         },
+        {
+          path: 'transfer',
+          component: () => import('@/views/financial/record/transfer/index'),
+          name: 'MoneyTransfer',
+          meta: { title: '余额转账', icon: '' },
+        },
       ],
     },
     {

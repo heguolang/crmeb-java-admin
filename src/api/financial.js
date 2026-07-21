@@ -161,3 +161,14 @@ export function brokerageListApi(params) {
     params,
   });
 }
+
+/**
+ * 余额转账记录
+ */
+export function moneyTransferListApi(params) {
+  return request({
+    url: '/admin/finance/transfer/list',
+    method: 'get',
+    params,
+  });
+}
