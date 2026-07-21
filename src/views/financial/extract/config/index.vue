@@ -69,6 +69,14 @@
         </el-tab-pane>
         <el-tab-pane label="公共设置" name="common">
           <el-form label-width="180px" style="max-width: 720px">
+            <el-form-item label="提现支持账户" required>
+              <div class="extract-type-row">
+                <el-checkbox v-model="extractTypeMap.bank">银行卡</el-checkbox>
+                <el-checkbox v-model="extractTypeMap.weixin">微信</el-checkbox>
+                <el-checkbox v-model="extractTypeMap.alipay">支付宝</el-checkbox>
+              </div>
+              <div class="form-tip">勾选后前端才展示对应提现方式，至少勾选一种</div>
+            </el-form-item>
             <el-form-item label="提现银行卡">
               <el-input
                 type="textarea"
@@ -122,6 +130,12 @@ export default {
         balanceExtractFee: '0',
         balanceExtractMultiple: '0',
         userExtractBank: '',
+        userExtractType: 'bank,weixin,alipay',
+      },
+      extractTypeMap: {
+        bank: true,
+        weixin: true,
+        alipay: true,
       },
       rules: {
         brokerageExtractMinPrice: [{ validator: nonNegNumber, trigger: 'blur' }],
@@ -142,12 +156,36 @@ export default {
       extractConfigGetApi()
         .then((res) => {
           this.form = Object.assign({}, this.form, res || {});
+          const types = String(this.form.userExtractType || 'bank,weixin,alipay')
+            .split(',')
+            .map((s) => (s || '').trim())
+            .filter((s) => ['bank', 'weixin', 'alipay'].includes(s));
+          const enabled = types.length ? types : ['bank', 'weixin', 'alipay'];
+          this.extractTypeMap = {
+            bank: enabled.includes('bank'),
+            weixin: enabled.includes('weixin'),
+            alipay: enabled.includes('alipay'),
+          };
         })
         .finally(() => {
           this.loading = false;
         });
     },
+    getSelectedExtractTypes() {
+      const list = [];
+      if (this.extractTypeMap.bank) list.push('bank');
+      if (this.extractTypeMap.weixin) list.push('weixin');
+      if (this.extractTypeMap.alipay) list.push('alipay');
+      return list;
+    },
     onSave() {
+      const selected = this.getSelectedExtractTypes();
+      if (!selected.length) {
+        this.activeTab = 'common';
+        this.$message.warning('请至少勾选一种提现支持账户');
+        return;
+      }
+      this.form.userExtractType = selected.join(',');
       const forms = ['brokerageForm', 'balanceForm'];
       const run = (idx) => {
         if (idx >= forms.length) {
@@ -194,5 +232,16 @@ export default {
   font-size: 12px;
   color: #909399;
   line-height: 1.5;
+}
+.extract-type-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 32px;
+}
+.extract-type-row >>> .el-checkbox {
+  margin-right: 24px;
+  display: inline-flex;
+  align-items: center;
 }
 </style>
