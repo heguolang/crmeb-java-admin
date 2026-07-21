@@ -226,6 +226,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="spreadNickname" label="推荐人" min-width="130" v-if="checkedCities.includes('推荐人')" />
+        <el-table-column prop="brokeragePrice" label="佣金" min-width="100" v-if="checkedCities.includes('佣金')" />
         <el-table-column label="手机号" min-width="100" v-if="checkedCities.includes('手机号')">
           <template slot-scope="scope">
             <span>{{ scope.row.phone | filterEmpty }}</span>
@@ -248,7 +249,7 @@
                 <el-dropdown-item
                   @click.native="editPoint(scope.row.uid)"
                   v-if="checkPermi(['admin:user:operate:founds'])"
-                  >积分余额</el-dropdown-item
+                  >积分余额佣金</el-dropdown-item
                 >
                 <el-dropdown-item
                   @click.native="editVoucherWarrant(scope.row.uid)"
@@ -395,9 +396,9 @@
     <el-dialog title="编辑" :visible.sync="visible" width="900px">
       <edit-from v-if="visible" :uid="uid" @resetForm="resetForm"></edit-from>
     </el-dialog>
-    <!--积分余额-->
+    <!--积分余额佣金-->
     <el-dialog
-      title="积分余额"
+      title="积分余额佣金"
       :visible.sync="VisiblePoint"
       width="540px"
       :close-on-click-modal="false"
@@ -406,7 +407,7 @@
       <el-form
         :model="PointValidateForm"
         ref="PointValidateForm"
-        label-width="80px"
+        label-width="100px"
         class="demo-dynamic"
         v-loading="loadingPoint"
       >
@@ -439,6 +440,23 @@
             type="text"
             step-strictly
             v-model="PointValidateForm.integralValue"
+            :min="0"
+            :max="999999"
+          ></el-input-number>
+        </el-form-item>
+        <el-form-item label="修改佣金：" required>
+          <el-radio-group v-model="PointValidateForm.brokerageType">
+            <el-radio :label="1">增加</el-radio>
+            <el-radio :label="2">减少</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="佣金：" required>
+          <el-input-number
+            controls-position="right"
+            type="text"
+            v-model="PointValidateForm.brokerageValue"
+            :precision="2"
+            :step="0.1"
             :min="0"
             :max="999999"
           ></el-input-number>
@@ -566,6 +584,8 @@ export default {
         integralValue: 0,
         moneyType: 2,
         moneyValue: 0,
+        brokerageType: 1,
+        brokerageValue: 0,
         uid: '',
       },
       loadingPoint: false,
@@ -658,8 +678,8 @@ export default {
       idKey: 'uid',
       card_select_show: false,
       checkAll: false,
-      checkedCities: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '手机号', '余额', '积分', '消费券', '权证', '权证地址'],
-      columnData: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '手机号', '余额', '积分', '消费券', '权证', '权证地址'],
+      checkedCities: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '积分', '消费券', '权证', '权证地址'],
+      columnData: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '积分', '消费券', '权证', '权证地址'],
       isIndeterminate: true,
     };
   },
@@ -902,6 +922,8 @@ export default {
         integralValue: 0,
         moneyType: 2,
         moneyValue: 0,
+        brokerageType: 1,
+        brokerageValue: 0,
         uid: '',
       };
     },
@@ -1049,8 +1071,8 @@ export default {
       this.checkedCities = this.$cache.local.has('user_stroge')
         ? this.$cache.local.getJSON('user_stroge')
         : this.checkedCities;
-      // 合并新增列，避免旧缓存隐藏消费券/权证列
-      const merged = Array.from(new Set([...(this.checkedCities || []), '消费券', '权证', '权证地址']));
+      // 合并新增列，避免旧缓存隐藏消费券/权证/佣金列
+      const merged = Array.from(new Set([...(this.checkedCities || []), '消费券', '权证', '权证地址', '佣金']));
       this.checkedCities = merged.filter((item) => this.columnData.includes(item));
       this.$cache.local.setJSON('user_stroge', this.checkedCities);
       this.$set(this, 'card_select_show', false);

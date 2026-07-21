@@ -172,3 +172,25 @@ export function moneyTransferListApi(params) {
     params,
   });
 }
+
+/**
+ * 权证兑换申请列表
+ */
+export function warrantExchangeListApi(params) {
+  return request({
+    url: '/admin/finance/warrant/exchange/list',
+    method: 'get',
+    params,
+  });
+}
+
+/**
+ * 更新权证兑换处理状态
+ */
+export function warrantExchangeStatusApi(params) {
+  return request({
+    url: '/admin/finance/warrant/exchange/status',
+    method: 'post',
+    params,
+  });
+}

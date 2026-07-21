@@ -108,25 +108,10 @@ export default {
       return 0;
     },
     add() {
-      this.$refs.teamGrades.formData = {
-        name: '',
-        grade: 1,
-        selfOrderAmount: 0,
-        teamOrderAmount: 0,
-        description: '',
-        icon: '',
-        id: null,
-        isShow: true,
-        config: {
-          teamBrokerageRate: 0,
-          peerAwardRate: 0,
-        },
-      };
-      this.$refs.teamGrades.dialogVisible = true;
+      this.$refs.teamGrades.openCreate();
     },
     edit(row) {
-      this.$refs.teamGrades.formData = { id: row.id };
-      this.$refs.teamGrades.dialogVisible = true;
+      this.$refs.teamGrades.openEdit(row.id);
     },
     getList() {
       this.listLoading = true;

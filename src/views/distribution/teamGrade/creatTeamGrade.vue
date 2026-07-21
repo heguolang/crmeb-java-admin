@@ -1,9 +1,9 @@
 <template>
   <el-dialog
-    v-if="dialogVisible"
     :title="formData.id ? '编辑团队等级' : '添加团队等级'"
     :visible.sync="dialogVisible"
     width="720px"
+    :close-on-click-modal="false"
     :before-close="handleClose"
   >
     <el-form :model="formData" :rules="rules" ref="teamForm" label-width="150px" class="demo-ruleForm" v-loading="loading">
@@ -176,14 +176,26 @@ export default {
       },
     };
   },
-  watch: {
-    dialogVisible(val) {
-      if (val && this.formData.id) {
-        this.loadInfo(this.formData.id);
-      }
-    },
-  },
   methods: {
+    openCreate() {
+      this.formData = defaultForm();
+      this.dialogVisible = true;
+      this.$nextTick(() => {
+        if (this.$refs.teamForm) {
+          this.$refs.teamForm.clearValidate();
+        }
+      });
+    },
+    openEdit(id) {
+      this.formData = { ...defaultForm(), id };
+      this.dialogVisible = true;
+      this.$nextTick(() => {
+        if (this.$refs.teamForm) {
+          this.$refs.teamForm.clearValidate();
+        }
+        this.loadInfo(id);
+      });
+    },
     modalPicTap(tit, num) {
       const _this = this;
       this.$modalUpload(
@@ -205,18 +217,19 @@ export default {
           this.formData = {
             ...defaultForm(),
             ...level,
+            id: level.id || id,
             selfOrderAmount: level.selfOrderAmount != null ? Number(level.selfOrderAmount) : 0,
             teamOrderAmount: level.teamOrderAmount != null ? Number(level.teamOrderAmount) : 0,
             selfOrderTriggerType: level.selfOrderTriggerType != null ? Number(level.selfOrderTriggerType) : 2,
             teamOrderTriggerType: level.teamOrderTriggerType != null ? Number(level.teamOrderTriggerType) : 2,
             config: {
-              teamBrokerageRate: config.teamBrokerageRate != null ? config.teamBrokerageRate : 0,
-              peerAwardRate: config.peerAwardRate != null ? config.peerAwardRate : 0,
+              teamBrokerageRate: config.teamBrokerageRate != null ? Number(config.teamBrokerageRate) : 0,
+              peerAwardRate: config.peerAwardRate != null ? Number(config.peerAwardRate) : 0,
             },
           };
-          this.loading = false;
         })
-        .catch(() => {
+        .catch(() => {})
+        .finally(() => {
           this.loading = false;
         });
     },
@@ -254,11 +267,11 @@ export default {
         request
           .then(() => {
             this.$message.success(this.formData.id ? '编辑成功' : '添加成功');
-            this.loading = false;
             this.handleClose();
             this.$parent.getList();
           })
-          .catch(() => {
+          .catch(() => {})
+          .finally(() => {
             this.loading = false;
           });
       });
