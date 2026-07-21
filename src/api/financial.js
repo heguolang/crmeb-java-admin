@@ -60,6 +60,27 @@ export function applyStatusApi(params, data) {
 }
 
 /**
+ * 提现设置 获取
+ */
+export function extractConfigGetApi() {
+  return request({
+    url: '/admin/finance/extract/config',
+    method: 'get',
+  });
+}
+
+/**
+ * 提现设置 保存
+ */
+export function extractConfigSaveApi(data) {
+  return request({
+    url: '/admin/finance/extract/config',
+    method: 'post',
+    data,
+  });
+}
+
+/**
  * 充值 列表
  * @param pram
  */

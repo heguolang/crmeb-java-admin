@@ -35,6 +35,13 @@
                 <el-option label="微信" value="weixin"></el-option>
               </el-select>
             </el-form-item>
+            <el-form-item label="提现来源：">
+              <el-select class="selWidth" @change="getList(1)" v-model="tableFrom.extractSource" placeholder="请选择">
+                <el-option label="全部" value=""></el-option>
+                <el-option label="佣金" value="brokerage"></el-option>
+                <el-option label="余额" value="balance"></el-option>
+              </el-select>
+            </el-form-item>
             <el-form-item label="关键字：">
               <el-input
                 v-model="tableFrom.keywords"
@@ -75,6 +82,11 @@
         <el-table-column prop="extractPrice" label="提现金额" min-width="100" />
         <el-table-column prop="extractFee" label="手续费" min-width="90" />
         <el-table-column prop="arrivePrice" label="实到金额" min-width="100" />
+        <el-table-column label="提现来源" min-width="90">
+          <template slot-scope="scope">
+            <span>{{ scope.row.extractSource === 'balance' ? '余额' : '佣金' }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="提现方式" min-width="100">
           <template slot-scope="scope">
             <span>{{ scope.row.extractType | extractTypeFilter }}</span>
@@ -232,6 +244,7 @@ export default {
       listLoading: true,
       tableFrom: {
         extractType: '',
+        extractSource: '',
         status: '',
         dateLimit: '',
         keywords: '',
@@ -253,6 +266,7 @@ export default {
     //重置
     handleReset() {
       this.tableFrom.extractType = '';
+      this.tableFrom.extractSource = '';
       this.tableFrom.status = '';
       this.tableFrom.dateLimit = '';
       this.tableFrom.keywords = '';

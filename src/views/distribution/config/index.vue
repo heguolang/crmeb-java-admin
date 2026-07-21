@@ -125,55 +125,6 @@
           ></el-input-number>
           <span>%</span>
         </el-form-item>
-        <el-form-item prop="userExtractMinPrice">
-          <span slot="label">
-            <span>提现最低金额：</span>
-            <el-tooltip class="item" effect="dark" content="用户提现最低金额" placement="top-start">
-              <i class="el-icon-warning-outline" />
-            </el-tooltip>
-          </span>
-          <el-input-number
-            controls-position="right"
-            v-model="promoterForm.userExtractMinPrice"
-            :min="0"
-            :step="1"
-            class="selWidth"
-            placeholder="用户提现最低金额"
-          ></el-input-number>
-        </el-form-item>
-        <el-form-item prop="userExtractFee">
-          <span slot="label">
-            <span>提现手续费：</span>
-            <el-tooltip class="item" effect="dark" content="每次提现固定收取的手续费（元），从提现金额中扣除，实到=提现金额-手续费" placement="top-start">
-              <i class="el-icon-warning-outline" />
-            </el-tooltip>
-          </span>
-          <el-input-number
-            controls-position="right"
-            v-model="promoterForm.userExtractFee"
-            :min="0"
-            :precision="2"
-            :step="0.1"
-            class="selWidth"
-            placeholder="提现手续费（元）"
-          ></el-input-number>
-          <span> 元</span>
-        </el-form-item>
-        <el-form-item prop="userExtractBank">
-          <span slot="label">
-            <span>提现银行卡：</span>
-            <el-tooltip class="item" effect="dark" content="提现银行卡，每个银行换行" placement="top-start">
-              <i class="el-icon-warning-outline" />
-            </el-tooltip>
-          </span>
-          <el-input
-            type="textarea"
-            :rows="4"
-            placeholder="提现银行卡，每个银行换行"
-            v-model="promoterForm.userExtractBank"
-          >
-          </el-input>
-        </el-form-item>
         <el-form-item prop="extractTime">
           <span slot="label">
             <span>冻结时间：</span>
@@ -189,6 +140,13 @@
             placeholder="佣金冻结时间(天)"
           ></el-input-number>
         </el-form-item>
+        <el-alert
+          type="info"
+          :closable="false"
+          show-icon
+          title="提现最低金额、手续费、银行卡请到「财务 → 提现设置」配置"
+          style="margin: 0 0 16px 200px; max-width: 480px"
+        />
         <el-form-item>
           <el-button
             type="primary"
