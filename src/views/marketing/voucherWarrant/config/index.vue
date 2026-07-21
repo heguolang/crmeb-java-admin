@@ -15,11 +15,11 @@
         <el-form-item label="多少消费券 = 1 元余额" prop="voucherToBalanceRatio">
           <el-input v-model="form.voucherToBalanceRatio" placeholder="例如 10" />
         </el-form-item>
-        <el-form-item label="兑 1 权证所需消费券" prop="warrantNeedVoucher">
-          <el-input v-model="form.warrantNeedVoucher" placeholder="例如 5" />
+        <el-form-item label="多少消费券 = 1 权证" prop="warrantNeedVoucher">
+          <el-input v-model="form.warrantNeedVoucher" placeholder="例如 5，仅用消费券兑换" />
         </el-form-item>
-        <el-form-item label="兑 1 权证所需积分" prop="warrantNeedIntegral">
-          <el-input v-model="form.warrantNeedIntegral" placeholder="例如 100" />
+        <el-form-item label="多少积分 = 1 权证" prop="warrantNeedIntegral">
+          <el-input v-model="form.warrantNeedIntegral" placeholder="例如 100，仅用积分兑换" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="saving" @click="onSave">保存</el-button>
