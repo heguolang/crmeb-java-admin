@@ -26,6 +26,22 @@
               size="small"
             ></el-input>
           </el-form-item>
+          <el-form-item label="状态：">
+            <el-select
+              v-model="tableFrom.status"
+              placeholder="全部状态"
+              clearable
+              class="selWidth"
+              size="small"
+            >
+              <el-option
+                v-for="item in statusOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" size="small" @click="getList(1)">搜索</el-button>
             <el-button size="small" @click="handleReset">重置</el-button>
@@ -60,6 +76,13 @@
           "
         />
         <el-table-column label="备注" min-width="120" prop="mark" />
+        <el-table-column label="状态" min-width="100">
+          <template slot-scope="scope">
+            <el-tag size="mini" :type="statusTagType(scope.row.status)">
+              {{ statusLabel(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="用户昵称" min-width="120" prop="nickName" />
         <el-table-column prop="updateTime" label="	添加时间" width="170" />
       </el-table>
@@ -99,7 +122,14 @@ export default {
         limit: 20,
         dateLimit: '',
         keywords: '',
+        status: undefined,
       },
+      statusOptions: [
+        { value: 1, label: '创建' },
+        { value: 2, label: '冻结中' },
+        { value: 3, label: '已完成' },
+        { value: 4, label: '已失效' },
+      ],
       userIdList: [],
       userList: [],
       timeVal: [],
@@ -111,11 +141,20 @@ export default {
     // this.getUserList()
   },
   methods: {
+    statusLabel(status) {
+      const map = { 1: '创建', 2: '冻结中', 3: '已完成', 4: '已失效' };
+      return map[status] || '-';
+    },
+    statusTagType(status) {
+      const map = { 1: 'info', 2: 'warning', 3: 'success', 4: 'danger' };
+      return map[status] || 'info';
+    },
     //重置
     handleReset() {
       this.timeVal = [];
       this.tableFrom.dateLimit = '';
       this.tableFrom.keywords = '';
+      this.tableFrom.status = undefined;
       this.getList();
     },
     seachList() {
@@ -137,9 +176,16 @@ export default {
       this.getList();
     },
     // 列表
-    getList() {
+    getList(num) {
       this.listLoading = true;
-      integralListApi({ limit: this.tableFrom.limit, page: this.tableFrom.page }, this.tableFrom)
+      if (num) {
+        this.tableFrom.page = num;
+      }
+      const params = { ...this.tableFrom };
+      if (params.status === '' || params.status === null) {
+        delete params.status;
+      }
+      integralListApi({ limit: params.limit, page: params.page }, params)
         .then((res) => {
           this.tableData.data = res.list;
           this.tableData.total = res.total;

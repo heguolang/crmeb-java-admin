@@ -25,6 +25,22 @@
               />
             </el-select>
           </el-form-item>
+          <el-form-item label="状态：">
+            <el-select
+              @change="getList(1)"
+              class="selWidth"
+              v-model="tableFrom.status"
+              clearable
+              placeholder="全部状态"
+            >
+              <el-option
+                v-for="item in statusOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
         </el-form>
       </div>
     </el-card>
@@ -55,6 +71,13 @@
           </template>
         </el-table-column>
         <el-table-column label="变动类型" min-width="130" prop="title" />
+        <el-table-column label="状态" min-width="100">
+          <template slot-scope="scope">
+            <el-tag size="mini" :type="statusTagType(scope.row.status)">
+              {{ statusLabel(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="userName" label="用户信息" min-width="150" />
         <el-table-column label="时间" width="170" prop="updateTime"> </el-table-column>
       </el-table>
@@ -76,7 +99,7 @@
 
 <script>
 import { brokerageListApi } from '@/api/financial';
-import { brokerageLevelOptions, getBrokerageLevelLabel, getBrokerageLevelTagType } from '@/utils/brokerage';
+import { getBrokerageLevelLabel, getBrokerageLevelTagType } from '@/utils/brokerage';
 export default {
   name: 'AccountsCapital',
   data() {
@@ -90,6 +113,7 @@ export default {
       tableFrom: {
         type: '',
         brokerageLevel: undefined,
+        status: undefined,
         page: 1,
         limit: 20,
       },
@@ -107,7 +131,19 @@ export default {
         { value: 4, label: '提现成功' },
         { value: 5, label: '佣金转余额' },
       ],
-      brokerageLevelOptions,
+      statusOptions: [
+        { value: 1, label: '待入账' },
+        { value: 2, label: '冻结中' },
+        { value: 3, label: '已完成' },
+        { value: 4, label: '已失效' },
+        { value: 5, label: '提现申请' },
+      ],
+      // 团队奖不在此页展示，请到「分销-团队奖资金记录」
+      brokerageLevelOptions: [
+        { value: 1, label: '一级推广' },
+        { value: 2, label: '二级推广' },
+        { value: 0, label: '自购返佣' },
+      ],
     };
   },
   mounted() {
@@ -117,6 +153,14 @@ export default {
   methods: {
     getBrokerageLevelLabel,
     getBrokerageLevelTagType,
+    statusLabel(status) {
+      const map = { 1: '待入账', 2: '冻结中', 3: '已完成', 4: '已失效', 5: '提现申请' };
+      return map[status] || '-';
+    },
+    statusTagType(status) {
+      const map = { 1: 'info', 2: 'warning', 3: 'success', 4: 'danger', 5: '' };
+      return map[status] || 'info';
+    },
     onTypeChange() {
       if (this.tableFrom.type !== 1) {
         this.tableFrom.brokerageLevel = undefined;
@@ -127,7 +171,11 @@ export default {
     getList(num) {
       this.listLoading = true;
       this.tableFrom.page = num ? num : this.tableFrom.page;
-      brokerageListApi(this.tableFrom)
+      const params = { ...this.tableFrom };
+      if (params.status === '' || params.status === null) {
+        delete params.status;
+      }
+      brokerageListApi(params)
         .then((res) => {
           this.tableData.data = res.list;
           this.tableData.total = res.total;
