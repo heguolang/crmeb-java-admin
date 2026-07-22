@@ -6,11 +6,14 @@
         <el-form-item label="功能开关">
           <el-switch v-model="form.voucherWarrantSwitch" active-value="1" inactive-value="0" />
         </el-form-item>
-        <el-form-item label="多少积分 = 1 消费券" prop="integralToVoucherRatio">
-          <el-input v-model="form.integralToVoucherRatio" placeholder="例如 100" />
+        <el-form-item label="多少积分 = 1 消费券（主动兑换）" prop="integralToVoucherRatio">
+          <el-input v-model="form.integralToVoucherRatio" placeholder="例如 100，仅主动兑换使用" />
+        </el-form-item>
+        <el-form-item label="每日释放：多少积分 = 1 消费券" prop="integralDailyReleaseExchangeRatio">
+          <el-input v-model="form.integralDailyReleaseExchangeRatio" placeholder="例如 1，与主动兑换比例独立" />
         </el-form-item>
         <el-form-item label="每日强制释放积分百分比(%)" prop="integralDailyReleaseRatio">
-          <el-input v-model="form.integralDailyReleaseRatio" placeholder="例如 10，范围 0~100" />
+          <el-input v-model="form.integralDailyReleaseRatio" placeholder="例如 1，范围 0~100" />
         </el-form-item>
         <el-form-item label="多少消费券 = 1 元余额" prop="voucherToBalanceRatio">
           <el-input v-model="form.voucherToBalanceRatio" placeholder="例如 10" />
@@ -67,13 +70,15 @@ export default {
       form: {
         voucherWarrantSwitch: '1',
         integralToVoucherRatio: '100',
-        integralDailyReleaseRatio: '10',
+        integralDailyReleaseExchangeRatio: '1',
+        integralDailyReleaseRatio: '1',
         voucherToBalanceRatio: '10',
         warrantNeedVoucher: '5',
         warrantNeedIntegral: '100',
       },
       rules: {
         integralToVoucherRatio: [{ validator: positiveNumber, trigger: 'blur' }],
+        integralDailyReleaseExchangeRatio: [{ validator: positiveNumber, trigger: 'blur' }],
         integralDailyReleaseRatio: [{ validator: percentNumber, trigger: 'blur' }],
         voucherToBalanceRatio: [{ validator: positiveNumber, trigger: 'blur' }],
         warrantNeedVoucher: [{ validator: positiveNumber, trigger: 'blur' }],

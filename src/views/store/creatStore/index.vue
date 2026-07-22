@@ -507,7 +507,19 @@
                   controls-position="right"
                   v-model="formValidate.giveIntegral"
                   :min="0"
-                  placeholder="请输入排序"
+                  placeholder="请输入赠送积分"
+                  :disabled="isDisabled"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col v-bind="grid">
+              <el-form-item label="是否支持积分抵扣：">
+                <el-switch
+                  v-model="formValidate.isIntegral"
+                  :active-value="true"
+                  :inactive-value="false"
+                  active-text="支持"
+                  inactive-text="不支持"
                   :disabled="isDisabled"
                 />
               </el-form-item>
@@ -615,6 +627,7 @@ const defaultObj = {
   unitName: '',
   sort: 0,
   giveIntegral: 0,
+  isIntegral: false,
   ficti: 0,
   isShow: false,
   isBenefit: false,
@@ -826,6 +839,7 @@ export default {
                   specType: info.attr.length ? true : false,
                   id: info.id,
                   giveIntegral: info.giveIntegral,
+                  isIntegral: !!info.isIntegral,
                   ficti: info.ficti,
                 };
                 if (info.isHot) this.checkboxGroup.push('isHot');
@@ -876,6 +890,7 @@ export default {
                   specType: res.attr.length ? true : false,
                   id: res.id,
                   giveIntegral: res.giveIntegral,
+                  isIntegral: !!res.isIntegral,
                   ficti: res.ficti,
                 };
                 let imgs = JSON.parse(res.sliderImage);
@@ -1307,6 +1322,7 @@ export default {
             specType: info.specType,
             id: info.id,
             giveIntegral: info.giveIntegral,
+            isIntegral: !!info.isIntegral,
             ficti: info.ficti,
             coupons: info.coupons,
             couponIds: info.couponIds,
