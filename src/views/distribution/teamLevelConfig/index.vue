@@ -35,6 +35,13 @@
           />
           <span class="form-tip">0 表示不限制层数</span>
         </el-form-item>
+        <el-form-item label="团队奖到账方式：" prop="teamBrokerageCreditTiming">
+          <el-radio-group v-model="manageForm.teamBrokerageCreditTiming">
+            <el-radio :label="1">支付订单到账</el-radio>
+            <el-radio :label="2">订单完成到账</el-radio>
+          </el-radio-group>
+          <div class="form-tip">支付订单到账：付款成功立即入账；订单完成到账：确认收货后入账</div>
+        </el-form-item>
         <el-form-item>
           <el-button
             type="primary"
@@ -175,10 +182,12 @@ export default {
       manageForm: {
         teamBrokerageStatus: 0,
         teamBrokerageMaxDepth: 0,
+        teamBrokerageCreditTiming: 1,
       },
       manageRules: {
         teamBrokerageStatus: [{ required: true, message: '请选择开关状态', trigger: 'change' }],
         teamBrokerageMaxDepth: [{ required: true, message: '请输入追溯层数', trigger: 'blur' }],
+        teamBrokerageCreditTiming: [{ required: true, message: '请选择到账方式', trigger: 'change' }],
       },
       loading: false,
       tableData: [],
@@ -212,6 +221,8 @@ export default {
         this.manageForm = {
           teamBrokerageStatus: data.teamBrokerageStatus != null ? Number(data.teamBrokerageStatus) : 0,
           teamBrokerageMaxDepth: data.teamBrokerageMaxDepth != null ? Number(data.teamBrokerageMaxDepth) : 0,
+          teamBrokerageCreditTiming:
+            data.teamBrokerageCreditTiming != null ? Number(data.teamBrokerageCreditTiming) : 1,
         };
       } catch (e) {
         this.$message.error('获取全局配置失败');

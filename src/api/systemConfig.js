@@ -108,6 +108,17 @@ export function configSaveUniq(pram) {
 }
 
 /**
+ * 根据key获取配置
+ */
+export function configGetUniq(pram) {
+  return request({
+    url: '/admin/system/config/getuniq',
+    method: 'GET',
+    params: { key: pram.key },
+  });
+}
+
+/**
  * @description 获取管理端logo
  */
 export function getSiteLogoApi() {

@@ -67,6 +67,45 @@
             <el-radio label="1">新用户</el-radio>
           </el-radio-group>
         </el-form-item>
+        <el-form-item prop="registerDefaultIsPromoter">
+          <span slot="label">
+            <span>注册默认推广员：</span>
+            <el-tooltip
+              class="item"
+              effect="dark"
+              content="用户首次注册/登录时是否自动成为推广员（可发展下级）"
+              placement="top-start"
+            >
+              <i class="el-icon-warning-outline" />
+            </el-tooltip>
+          </span>
+          <el-radio-group v-model="promoterForm.registerDefaultIsPromoter">
+            <el-radio label="1">是</el-radio>
+            <el-radio label="0">否</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item prop="registerDefaultUserLevel">
+          <span slot="label">
+            <span>注册默认会员等级：</span>
+            <el-tooltip
+              class="item"
+              effect="dark"
+              content="用户首次注册/登录时默认赋予的会员等级，选「不设置」则保持无等级"
+              placement="top-start"
+            >
+              <i class="el-icon-warning-outline" />
+            </el-tooltip>
+          </span>
+          <el-select v-model="promoterForm.registerDefaultUserLevel" placeholder="请选择" class="selWidth" clearable>
+            <el-option :value="0" label="不设置"></el-option>
+            <el-option
+              v-for="item in levelList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item prop="storeBrokerageIsBubble">
           <span slot="label">
             <span>分销气泡：</span>
@@ -128,7 +167,7 @@
         <el-form-item prop="extractTime">
           <span slot="label">
             <span>冻结时间：</span>
-            <el-tooltip class="item" effect="dark" content="佣金冻结时间(天)" placement="top-start">
+            <el-tooltip class="item" effect="dark" content="佣金冻结时间(天)，仅在到账方式为订单完成时作为初始冻结天数参考" placement="top-start">
               <i class="el-icon-warning-outline" />
             </el-tooltip>
           </span>
@@ -139,6 +178,23 @@
             class="selWidth"
             placeholder="佣金冻结时间(天)"
           ></el-input-number>
+        </el-form-item>
+        <el-form-item prop="brokerageCreditTiming">
+          <span slot="label">
+            <span>佣金到账方式：</span>
+            <el-tooltip
+              class="item"
+              effect="dark"
+              content="支付订单到账：付款成功立即入账；订单完成到账：用户确认收货后入账"
+              placement="top-start"
+            >
+              <i class="el-icon-warning-outline" />
+            </el-tooltip>
+          </span>
+          <el-radio-group v-model="promoterForm.brokerageCreditTiming">
+            <el-radio :label="1">支付订单到账</el-radio>
+            <el-radio :label="2">订单完成到账</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-alert
           type="info"
@@ -163,6 +219,7 @@
 
 <script>
 import { configApi, configUpdateApi, productCheckApi } from '@/api/distribution';
+import { levelAllApi } from '@/api/user';
 import * as selfUtil from '@/utils/ZBKJIutil.js';
 import { checkPermi } from '@/utils/permission'; // 权限判断函数
 import { Debounce } from '@/utils/validate';
@@ -171,15 +228,19 @@ export default {
   data() {
     return {
       promoterForm: {},
+      levelList: [],
       loading: true,
       rules: {
         brokerageFuncStatus: [{ required: true, message: '请选择是否启用分销', trigger: 'change' }],
         storeBrokerageRatio: [{ required: true, message: '请输入一级返佣比例', trigger: 'blur' }],
         storeBrokerageTwo: [{ required: true, message: '请输入二级返佣比例', trigger: 'blur' }],
+        registerDefaultIsPromoter: [{ required: true, message: '请选择注册是否默认推广员', trigger: 'change' }],
+        registerDefaultUserLevel: [{ required: true, message: '请选择注册默认会员等级', trigger: 'change' }],
       },
     };
   },
   mounted() {
+    this.getLevelList();
     this.getDetal();
   },
   methods: {
@@ -193,6 +254,15 @@ export default {
       }
       return true;
     },
+    getLevelList() {
+      levelAllApi()
+        .then((res) => {
+          this.levelList = res || [];
+        })
+        .catch(() => {
+          this.levelList = [];
+        });
+    },
     getDetal() {
       this.loading = true;
       configApi()
@@ -202,6 +272,13 @@ export default {
           this.promoterForm.storeBrokerageIsBubble = res.storeBrokerageIsBubble.toString();
           this.promoterForm.brokerageFuncStatus = res.brokerageFuncStatus.toString();
           this.promoterForm.brokerageBindind = res.brokerageBindind.toString();
+          this.promoterForm.registerDefaultIsPromoter = (
+            res.registerDefaultIsPromoter == null ? 0 : res.registerDefaultIsPromoter
+          ).toString();
+          this.promoterForm.registerDefaultUserLevel =
+            res.registerDefaultUserLevel == null ? 0 : Number(res.registerDefaultUserLevel);
+          this.promoterForm.brokerageCreditTiming =
+            res.brokerageCreditTiming == null ? 1 : Number(res.brokerageCreditTiming);
         })
         .catch((res) => {
           this.$message.error(res.message);
@@ -213,17 +290,16 @@ export default {
           if (selfUtil.Add(this.promoterForm.storeBrokerageRatio, this.promoterForm.storeBrokerageTwo) > 100)
             return this.$message.warning('返佣比例相加不能超过100%');
           this.loading = true;
-          configUpdateApi(this.promoterForm)
+          const payload = {
+            ...this.promoterForm,
+            registerDefaultIsPromoter: Number(this.promoterForm.registerDefaultIsPromoter),
+            registerDefaultUserLevel: Number(this.promoterForm.registerDefaultUserLevel || 0),
+            brokerageCreditTiming: Number(this.promoterForm.brokerageCreditTiming || 1),
+          };
+          configUpdateApi(payload)
             .then((res) => {
               this.loading = false;
               this.$message.success('提交成功');
-              // this.$modalSure('提交成功，是否自动下架商户低于此佣金比例的商品').then(() => {
-              //   productCheckApi().then(({ message }) => {
-              //     this.$message.success(message)
-              //   }).catch(({ message }) => {
-              //     this.$message.error(message)
-              //   })
-              // })
             })
             .catch((err) => {
               this.loading = false;
