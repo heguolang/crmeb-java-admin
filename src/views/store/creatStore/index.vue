@@ -1295,6 +1295,13 @@ export default {
             ? (info.attr || []).map((item) => ({
                 attrName: item.attrName,
                 attrValue: (item.attrValues || '').split(',').filter(Boolean),
+                id: item.id,
+              }))
+            : info.attr && info.attr.length
+            ? info.attr.map((item) => ({
+                attrName: item.attrName || '规格',
+                attrValues: item.attrValues || '默认',
+                id: item.id,
               }))
             : [];
           this.formValidate = {
@@ -1483,96 +1490,127 @@ export default {
         }
       });
     },
-    //提交接口数据更新
+    //提交接口数据更新，成功返回 true，失败返回 false
     getFromData() {
-      if (this.formValidate.specType && this.formValidate.attr.length < 1)
-        return this.$message.warning('请填写多规格属性！');
+      if (this.formValidate.specType && (!this.formValidate.attr || this.formValidate.attr.length < 1)) {
+        this.$message.warning('请填写多规格属性！');
+        return false;
+      }
+      if (!Array.isArray(this.formValidate.cateIds) || !this.formValidate.cateIds.length) {
+        this.$message.warning('请选择商品分类！');
+        return false;
+      }
       this.formValidate.cateId = this.formValidate.cateIds.join(',');
       if (this.formValidate.videoLink) {
-        //如果有视频主图，将视频链接插入到轮播图第一的位置
-        this.formValidate.sliderImages.unshift(this.formValidate.videoLink);
+        //如果有视频主图，将视频链接插入到轮播图第一的位置（避免重复插入）
+        if (!this.formValidate.sliderImages.includes(this.formValidate.videoLink)) {
+          this.formValidate.sliderImages.unshift(this.formValidate.videoLink);
+        }
       }
       this.formValidate.sliderImage = JSON.stringify(this.formValidate.sliderImages);
       if (this.formValidate.specType) {
         this.formValidate.attrValue = this.ManyAttrValue;
         this.formValidate.attr = this.formValidate.attr.map((item) => {
+          const values = Array.isArray(item.attrValue)
+            ? item.attrValue
+            : typeof item.attrValue === 'string'
+            ? item.attrValue.split(',').filter(Boolean)
+            : [];
           return {
             attrName: item.attrName,
             id: item.id,
-            attrValue: item.attrValue,
-            attrValues: item.attrValue.join(','),
+            attrValue: values,
+            attrValues: values.join(','),
           };
         });
         for (var i = 0; i < this.formValidate.attrValue.length; i++) {
           this.$set(this.formValidate.attrValue[i], 'id', 0);
           this.$set(this.formValidate.attrValue[i], 'productId', 0);
           let attrValues = this.formValidate.attrValue[i].attrValue;
-          this.$set(this.formValidate.attrValue[i], 'attrValue', JSON.stringify(attrValues));
+          if (typeof attrValues !== 'string') {
+            this.$set(this.formValidate.attrValue[i], 'attrValue', JSON.stringify(attrValues || {}));
+          }
           delete this.formValidate.attrValue[i].value0;
         }
       } else {
-        this.formValidate.attr = [
-          { attrName: '规格', attrValues: '默认', id: this.$route.params.id ? this.formValidate.attr[0].id : 0 },
-        ];
+        // 单规格编辑时 attr 常为空数组，不能直接取 attr[0].id
+        const singleAttrId =
+          (this.formValidate.attr && this.formValidate.attr[0] && this.formValidate.attr[0].id) ||
+          (this.OneattrValue && this.OneattrValue[0] && this.OneattrValue[0].id) ||
+          0;
+        this.formValidate.attr = [{ attrName: '规格', attrValues: '默认', id: singleAttrId }];
         this.OneattrValue.map((item) => {
-          this.$set(item, 'attrValue', JSON.stringify({ 规格: '默认' }));
-          //this.$set(item, 'productId', 0);
+          if (typeof item.attrValue !== 'string') {
+            this.$set(item, 'attrValue', JSON.stringify({ 规格: '默认' }));
+          }
         });
         this.formValidate.attrValue = this.OneattrValue;
       }
+      return true;
     },
     // 提交
     handleSubmit: Debounce(function (name) {
       this.onChangeGroup();
-      this.getFromData();
       this.$refs[name].validate((valid) => {
-        if (valid) {
-          this.fullscreenLoading = true;
-          this.$route.params.id
-            ? productUpdateApi(this.formValidate)
-                .then(async (res) => {
-                  this.$message.success('编辑成功');
-                  setTimeout(() => {
-                    this.$router.push({ path: '/store/index' });
-                  }, 500);
-                  this.fullscreenLoading = false;
-                })
-                .catch((res) => {
-                  this.fullscreenLoading = false;
-                  this.restoreData();
-                  if (this.formValidate.specType) this.ManyAttrValue = this.formValidate.attrValue;
-                })
-            : productCreateApi(this.formValidate)
-                .then(async (res) => {
-                  this.$message.success('新增成功');
-                  setTimeout(() => {
-                    this.$router.push({ path: '/store/index' });
-                  }, 500);
-                  this.fullscreenLoading = false;
-                })
-                .catch((res) => {
-                  this.fullscreenLoading = false;
-                  this.restoreData();
-                });
-        } else {
-          if (
-            !this.formValidate.storeName ||
-            !this.formValidate.cateId ||
-            !this.formValidate.keyword ||
-            !this.formValidate.unitName ||
-            !this.formValidate.image ||
-            !this.formValidate.sliderImages
-          ) {
-            this.$message.warning('请填写完整商品信息！');
-          }
+        if (!valid) {
+          this.$message.warning('请填写完整商品信息！');
+          return;
         }
+        let prepared = false;
+        try {
+          prepared = this.getFromData();
+        } catch (e) {
+          console.error('商品提交数据处理失败', e);
+          this.$message.error('提交数据处理失败，请刷新页面后重试');
+          return;
+        }
+        if (!prepared) return;
+        this.fullscreenLoading = true;
+        this.$route.params.id
+          ? productUpdateApi(this.formValidate)
+              .then(async (res) => {
+                this.$message.success('编辑成功');
+                setTimeout(() => {
+                  this.$router.push({ path: '/store/index' });
+                }, 500);
+                this.fullscreenLoading = false;
+              })
+              .catch((res) => {
+                this.fullscreenLoading = false;
+                this.restoreData();
+                if (this.formValidate.specType) this.ManyAttrValue = this.formValidate.attrValue;
+              })
+          : productCreateApi(this.formValidate)
+              .then(async (res) => {
+                this.$message.success('新增成功');
+                setTimeout(() => {
+                  this.$router.push({ path: '/store/index' });
+                }, 500);
+                this.fullscreenLoading = false;
+              })
+              .catch((res) => {
+                this.fullscreenLoading = false;
+                this.restoreData();
+              });
       });
     }),
     // 提交失败之后恢复数据
     restoreData() {
+      if (!this.formValidate.attrValue || !this.formValidate.attrValue.length) return;
       for (var i = 0; i < this.formValidate.attrValue.length; i++) {
         let attrValues = this.formValidate.attrValue[i].attrValue;
-        this.$set(this.formValidate.attrValue[i], 'attrValue', JSON.parse(attrValues));
+        if (typeof attrValues === 'string') {
+          try {
+            this.$set(this.formValidate.attrValue[i], 'attrValue', JSON.parse(attrValues));
+          } catch (e) {
+            console.error('恢复规格数据失败', e);
+          }
+        }
+      }
+      // 视频主图提交时插入过轮播图，失败后还原
+      if (this.formValidate.videoLink && Array.isArray(this.formValidate.sliderImages)) {
+        const idx = this.formValidate.sliderImages.indexOf(this.formValidate.videoLink);
+        if (idx === 0) this.formValidate.sliderImages.splice(0, 1);
       }
     },
     // 表单验证
