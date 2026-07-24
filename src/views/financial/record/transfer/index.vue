@@ -33,11 +33,18 @@
             <el-form-item>
               <el-button type="primary" size="small" @click="getList(1)">搜索</el-button>
               <el-button size="small" @click="handleReset">重置</el-button>
+              <el-button size="small" @click="openExportDialog">导出</el-button>
             </el-form-item>
           </el-form>
         </div>
       </div>
     </el-card>
+    <export-date-dialog
+      :visible.sync="exportDialogVisible"
+      :loading="exportLoading"
+      :value="timeVal"
+      @confirm="onExportConfirm"
+    />
     <el-card class="box-card mt14">
       <el-table v-loading="listLoading" :data="tableData.data" style="width: 100%" size="mini" highlight-current-row>
         <el-table-column prop="id" label="ID" width="70" />
@@ -84,11 +91,16 @@
 
 <script>
 import { moneyTransferListApi } from '@/api/financial';
+import ExportDateDialog from '@/components/ExportDateDialog';
+import { runListExport } from '@/utils/listExport';
 
 export default {
   name: 'MoneyTransferRecord',
+  components: { ExportDateDialog },
   data() {
     return {
+      exportDialogVisible: false,
+      exportLoading: false,
       timeVal: [],
       listLoading: false,
       tableData: {
@@ -110,6 +122,67 @@ export default {
     this.getList();
   },
   methods: {
+    openExportDialog() {
+      this.exportDialogVisible = true;
+    },
+    async onExportConfirm(dateLimit) {
+      this.exportLoading = true;
+      const ok = await runListExport({
+        apiFn: moneyTransferListApi,
+        params: {
+          transferNo: this.tableFrom.transferNo || undefined,
+          fromUid: this.tableFrom.fromUid ? Number(this.tableFrom.fromUid) : undefined,
+          toUid: this.tableFrom.toUid ? Number(this.tableFrom.toUid) : undefined,
+          uid: this.tableFrom.uid ? Number(this.tableFrom.uid) : undefined,
+        },
+        dateLimit: dateLimit || this.tableFrom.dateLimit,
+        filename: '余额转账导出',
+        header: [
+          'ID',
+          '转账单号',
+          '转出UID',
+          '转出昵称',
+          '转入UID',
+          '转入昵称',
+          '转账金额',
+          '转出后余额',
+          '转入后余额',
+          '备注',
+          '状态',
+          '转账时间',
+        ],
+        filterVal: [
+          'id',
+          'transferNo',
+          'fromUid',
+          'fromNickname',
+          'toUid',
+          'toNickname',
+          'amount',
+          'fromBalance',
+          'toBalance',
+          'mark',
+          'statusText',
+          'createTime',
+        ],
+        mapRow: (row) => ({
+          id: row.id,
+          transferNo: row.transferNo,
+          fromUid: row.fromUid,
+          fromNickname: row.fromNickname || '',
+          toUid: row.toUid,
+          toNickname: row.toNickname || '',
+          amount: row.amount,
+          fromBalance: row.fromBalance,
+          toBalance: row.toBalance,
+          mark: row.mark || '',
+          statusText: row.status === 1 ? '成功' : row.status,
+          createTime: row.createTime || '',
+        }),
+      });
+      this.exportLoading = false;
+      if (ok) this.exportDialogVisible = false;
+    },
     handleReset() {
       this.tableFrom.fromUid = '';
       this.tableFrom.toUid = '';

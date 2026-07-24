@@ -30,11 +30,18 @@
             <el-form-item>
               <el-button type="primary" size="small" @click="getList(1)">搜索</el-button>
               <el-button size="small" @click="handleReset">重置</el-button>
+              <el-button size="small" @click="openExportDialog">导出</el-button>
             </el-form-item>
           </el-form>
         </div>
       </div>
     </el-card>
+    <export-date-dialog
+      :visible.sync="exportDialogVisible"
+      :loading="exportLoading"
+      :value="timeVal"
+      @confirm="onExportConfirm"
+    />
     <div class="mt14">
       <cards-data :card-lists="cardLists" v-if="checkPermi(['admin:recharge:balance'])" />
     </div>
@@ -121,12 +128,17 @@
 import { topUpLogListApi, balanceApi, topUpLogDeleteApi, refundApi } from '@/api/financial';
 import cardsData from '@/components/cards/index';
 import zbParser from '@/components/FormGenerator/components/parser/ZBParser';
+import ExportDateDialog from '@/components/ExportDateDialog';
+import { runListExport } from '@/utils/listExport';
+import { rechargeTypeFilter } from '@/filters/commFilter';
 import { checkPermi } from '@/utils/permission'; // 权限判断函数
 export default {
   name: 'AccountsBill',
-  components: { cardsData, zbParser },
+  components: { cardsData, zbParser, ExportDateDialog },
   data() {
     return {
+      exportDialogVisible: false,
+      exportLoading: false,
       editData: {},
       isCreate: 1,
       cardLists: [],
@@ -154,6 +166,34 @@ export default {
   },
   methods: {
     checkPermi,
+    openExportDialog() {
+      this.exportDialogVisible = true;
+    },
+    async onExportConfirm(dateLimit) {
+      this.exportLoading = true;
+      const ok = await runListExport({
+        apiFn: topUpLogListApi,
+        params: {
+          uid: this.tableFrom.uid,
+          keywords: this.tableFrom.keywords,
+        },
+        dateLimit: dateLimit || this.tableFrom.dateLimit,
+        filename: '充值记录导出',
+        header: ['UID', '用户昵称', '订单号', '支付金额', '赠送金额', '充值类型', '支付时间'],
+        filterVal: ['uid', 'nickname', 'orderId', 'price', 'givePrice', 'rechargeTypeText', 'payTime'],
+        mapRow: (row) => ({
+          uid: row.uid,
+          nickname: row.nickname || '',
+          orderId: row.orderId,
+          price: row.price,
+          givePrice: row.givePrice,
+          rechargeTypeText: rechargeTypeFilter(row.rechargeType) || row.rechargeType || '',
+          payTime: row.payTime || '',
+        }),
+      });
+      this.exportLoading = false;
+      if (ok) this.exportDialogVisible = false;
+    },
     //重置
     handleReset() {
       this.tableFrom.uid = '';

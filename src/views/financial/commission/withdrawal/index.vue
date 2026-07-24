@@ -55,11 +55,18 @@
             <el-form-item>
               <el-button type="primary" size="small" @click="getList(1)">搜索</el-button>
               <el-button size="small" @click="handleReset">重置</el-button>
+              <el-button size="small" @click="openExportDialog">导出</el-button>
             </el-form-item>
           </el-form>
         </div>
       </div>
     </el-card>
+    <export-date-dialog
+      :visible.sync="exportDialogVisible"
+      :loading="exportLoading"
+      :value="timeVal"
+      @confirm="onExportConfirm"
+    />
     <div class="mt14">
       <cards-data :cardLists="cardLists" v-if="checkPermi(['admin:finance:apply:balance'])"></cards-data>
     </div>
@@ -223,6 +230,9 @@
 import { applyListApi, applyBalanceApi, applyUpdateApi, applyStatusApi } from '@/api/financial';
 import cardsData from '@/components/cards/index';
 import zbParser from '@/components/FormGenerator/components/parser/ZBParser';
+import ExportDateDialog from '@/components/ExportDateDialog';
+import { runListExport } from '@/utils/listExport';
+import { extractTypeFilter, extractStatusFilter } from '@/filters/commFilter';
 import { checkPermi } from '@/utils/permission'; // 权限判断函数
 import { Debounce } from '@/utils/validate';
 export default {
@@ -230,9 +240,12 @@ export default {
   components: {
     cardsData,
     zbParser,
+    ExportDateDialog,
   },
   data() {
     return {
+      exportDialogVisible: false,
+      exportLoading: false,
       editData: {},
       isCreate: 1,
       dialogVisible: false,
@@ -263,6 +276,77 @@ export default {
   },
   methods: {
     checkPermi,
+    openExportDialog() {
+      this.exportDialogVisible = true;
+    },
+    async onExportConfirm(dateLimit) {
+      this.exportLoading = true;
+      const ok = await runListExport({
+        apiFn: applyListApi,
+        params: {
+          extractType: this.tableFrom.extractType,
+          extractSource: this.tableFrom.extractSource,
+          status: this.tableFrom.status,
+          keywords: this.tableFrom.keywords,
+        },
+        dateLimit: dateLimit || this.tableFrom.dateLimit,
+        filename: '提现申请导出',
+        header: [
+          'ID',
+          '用户昵称',
+          '用户ID',
+          '提现金额',
+          '手续费',
+          '实到金额',
+          '提现来源',
+          '提现方式',
+          '账号信息',
+          '审核状态',
+          '备注',
+          '创建时间',
+        ],
+        filterVal: [
+          'id',
+          'nickName',
+          'uid',
+          'extractPrice',
+          'extractFee',
+          'arrivePrice',
+          'extractSourceText',
+          'extractTypeText',
+          'accountInfo',
+          'statusText',
+          'mark',
+          'createTime',
+        ],
+        mapRow: (row) => {
+          let accountInfo = '';
+          if (row.extractType === 'bank') {
+            accountInfo = `姓名:${row.realName || ''};卡号:${row.bankCode || ''};开户行:${row.bankName || ''}`;
+          } else if (row.extractType === 'alipay') {
+            accountInfo = `姓名:${row.realName || ''};支付宝:${row.alipayCode || ''}`;
+          } else if (row.extractType === 'weixin') {
+            accountInfo = `姓名:${row.realName || ''};微信:${row.wechat || ''}`;
+          }
+          return {
+            id: row.id,
+            nickName: row.nickName,
+            uid: row.uid,
+            extractPrice: row.extractPrice,
+            extractFee: row.extractFee,
+            arrivePrice: row.arrivePrice,
+            extractSourceText: row.extractSource === 'balance' ? '余额' : '佣金',
+            extractTypeText: extractTypeFilter(row.extractType) || '',
+            accountInfo,
+            statusText: extractStatusFilter(row.status) || '',
+            mark: row.failMsg || row.mark || '',
+            createTime: row.createTime || '',
+          };
+        },
+      });
+      this.exportLoading = false;
+      if (ok) this.exportDialogVisible = false;
+    },
     //重置
     handleReset() {
       this.tableFrom.extractType = '';

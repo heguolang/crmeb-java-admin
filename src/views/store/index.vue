@@ -47,8 +47,13 @@
           <el-button type="primary" class="mr14" v-hasPermi="['admin:product:save']">添加商品</el-button>
         </router-link>
         <el-button type="success" @click="onCopy" v-hasPermi="['admin:product:save']">商品采集</el-button>
-        <el-button @click="exports" v-hasPermi="['admin:export:excel:product']">导出</el-button>
+        <el-button @click="openExportDialog">导出</el-button>
       </div>
+      <export-date-dialog
+        :visible.sync="exportDialogVisible"
+        :loading="exportLoading"
+        @confirm="onExportConfirm"
+      />
       <el-table
         class="table"
         v-loading="listLoading"
@@ -213,17 +218,21 @@ import {
   productHeadersApi,
   productExportApi,
   restoreApi,
-  productExcelApi,
 } from '@/api/store';
 import { getToken } from '@/utils/auth';
 import storeEdit from './components/storeEdit';
+import ExportDateDialog from '@/components/ExportDateDialog';
+import { runListExport } from '@/utils/listExport';
+import { formatDate } from '@/filters/commFilter';
 import { checkPermi } from '@/utils/permission'; // 权限判断函数
 import { Debounce } from '@/utils/validate.js';
 export default {
   name: 'ProductList',
-  components: { storeEdit },
+  components: { storeEdit, ExportDateDialog },
   data() {
     return {
+      exportDialogVisible: false,
+      exportLoading: false,
       direction: 'rtl',
       props: {
         children: 'child',
@@ -320,15 +329,36 @@ export default {
         },
       });
     },
-    // 导出
-    exports() {
-      productExcelApi({
-        cateId: this.tableFrom.cateId,
-        keywords: this.tableFrom.keywords,
-        type: this.tableFrom.type,
-      }).then((res) => {
-        window.location.href = res.fileName;
+    openExportDialog() {
+      this.exportDialogVisible = true;
+    },
+    async onExportConfirm(dateLimit) {
+      this.exportLoading = true;
+      const ok = await runListExport({
+        apiFn: productLstApi,
+        params: {
+          cateId: this.tableFrom.cateId,
+          keywords: this.tableFrom.keywords,
+          type: this.tableFrom.type,
+        },
+        dateLimit,
+        clientDateField: 'addTime',
+        filename: '商品导出',
+        header: ['ID', '商品名称', '商品售价', '销量', '库存', '排序', '添加时间', '状态'],
+        filterVal: ['id', 'storeName', 'price', 'sales', 'stock', 'sort', 'addTimeText', 'statusText'],
+        mapRow: (row) => ({
+          id: row.id,
+          storeName: row.storeName,
+          price: row.price,
+          sales: row.sales,
+          stock: row.stock,
+          sort: row.sort,
+          addTimeText: formatDate(row.addTime) || row.addTime || '',
+          statusText: row.isShow ? '上架' : '下架',
+        }),
       });
+      this.exportLoading = false;
+      if (ok) this.exportDialogVisible = false;
     },
     // 获取商品表单头数量
     goodHeade() {

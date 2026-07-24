@@ -58,8 +58,14 @@
           <el-tab-pane name="refunded" :label="`已退款(${orderChartType.refunded ? orderChartType.refunded : 0})`" />
           <el-tab-pane name="deleted" :label="`已删除(${orderChartType.deleted ? orderChartType.deleted : 0})`" />
         </el-tabs>
-        <el-button @click="exports" v-hasPermi="['admin:export:excel:order']">导出</el-button>
+        <el-button @click="openExportDialog">导出</el-button>
       </div>
+      <export-date-dialog
+        :visible.sync="exportDialogVisible"
+        :loading="exportLoading"
+        :value="timeVal"
+        @confirm="onExportConfirm"
+      />
       <el-table
         v-loading="listLoading"
         :data="tableData.data"
@@ -85,7 +91,28 @@
           </template>
         </el-table-column>
         <el-table-column prop="orderType" label="订单类型" min-width="110" v-if="checkedCities.includes('订单类型')" />
-        <el-table-column prop="realName" label="收货人" min-width="100" v-if="checkedCities.includes('收货人')" />
+        <el-table-column label="下单会员" min-width="180" v-if="checkedCities.includes('下单会员')">
+          <template slot-scope="scope">
+            <div>用户名：{{ scope.row.account || '-' }}<span v-if="scope.row.uid">({{ scope.row.uid }})</span></div>
+            <div>昵称：{{ scope.row.nikeName || '-' }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="推广员" min-width="140" v-if="checkedCities.includes('推广员')">
+          <template slot-scope="scope">
+            <div v-if="scope.row.spreadUid">
+              {{ scope.row.spreadName || '-' }}
+              <span v-if="scope.row.spreadAccount">({{ scope.row.spreadAccount }})</span>
+            </div>
+            <div v-else>-</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="收货人" min-width="200" v-if="checkedCities.includes('收货人')">
+          <template slot-scope="scope">
+            <div>姓名：{{ scope.row.realName || '-' }}</div>
+            <div>电话：{{ scope.row.userPhone || '-' }}</div>
+            <div class="text_overflow" :title="scope.row.userAddress">地址：{{ scope.row.userAddress || '-' }}</div>
+          </template>
+        </el-table-column>
         <el-table-column
           :show-overflow-tooltip="true"
           label="商品信息"
@@ -293,6 +320,7 @@
       :expressListNormal="expressListNormal"
       :expressListElec="expressListElec"
       :orderDetail="orderDetail"
+      :orderInfo="sendOrderInfo"
     ></order-send>
 
     <!--拒绝退款-->
@@ -349,7 +377,8 @@ import orderSend from './orderSend';
 import { storeStaffListApi } from '@/api/storePoint';
 import Cookies from 'js-cookie';
 import { isWriteOff } from '@/utils';
-import { orderExcelApi } from '@/api/store';
+import ExportDateDialog from '@/components/ExportDateDialog';
+import { runListExport } from '@/utils/listExport';
 import { expressAllApi } from '@/api/sms';
 import { checkPermi } from '@/utils/permission'; // 权限判断函数
 export default {
@@ -358,9 +387,12 @@ export default {
     zbParser,
     detailsFrom,
     orderSend,
+    ExportDateDialog,
   },
   data() {
     return {
+      exportDialogVisible: false,
+      exportLoading: false,
       options: [
         {
           value: 2,
@@ -424,12 +456,13 @@ export default {
       active: false,
       card_select_show: false,
       checkAll: false,
-      checkedCities: ['订单号', '订单类型', '收货人', '商品信息', '实际支付', '支付方式', '订单状态', '下单时间'],
-      columnData: ['订单号', '订单类型', '收货人', '商品信息', '实际支付', '支付方式', '订单状态', '下单时间'],
+      checkedCities: ['订单号', '订单类型', '下单会员', '推广员', '收货人', '商品信息', '实际支付', '支付方式', '订单状态', '下单时间'],
+      columnData: ['订单号', '订单类型', '下单会员', '推广员', '收货人', '商品信息', '实际支付', '支付方式', '订单状态', '下单时间'],
       isIndeterminate: true,
       expressListNormal: [], //全部物流公司 normal
       expressListElec: [], //全部物流公司 elec
       orderDetail: null, //订单详情
+      sendOrderInfo: null, //发货弹窗展示用订单信息
     };
   },
   mounted() {
@@ -550,6 +583,7 @@ export default {
     //修改快递单号
     handleUpdateNumber(row) {
       this.orderId = row.orderId;
+      this.sendOrderInfo = row || null;
       this.$refs.send.modals = true;
       this.$refs.send.loading = true;
       //默认加载Normal物流公司
@@ -559,6 +593,7 @@ export default {
     // 发送
     sendOrder(row) {
       this.orderDetail = null;
+      this.sendOrderInfo = row || null;
       if (row.type === 0) {
         this.$refs.send.modals = true;
         //默认加载Normal物流公司
@@ -695,6 +730,9 @@ export default {
           this.checkedCities = this.$cache.local.has('order_stroge')
             ? this.$cache.local.getJSON('order_stroge')
             : this.checkedCities;
+          const merged = Array.from(new Set([...(this.checkedCities || []), '下单会员', '推广员']));
+          this.checkedCities = merged.filter((item) => this.columnData.includes(item));
+          this.$cache.local.setJSON('order_stroge', this.checkedCities);
         })
         .catch(() => {
           this.listLoading = false;
@@ -735,16 +773,86 @@ export default {
       this.tableFrom.limit = val;
       this.getList();
     },
-    exports() {
-      let data = {
-        dateLimit: this.tableFrom.dateLimit,
-        orderNo: this.tableFrom.orderNo,
-        status: this.tableFrom.status,
-        type: this.tableFrom.type,
-      };
-      orderExcelApi(data).then((res) => {
-        window.open(res.fileName);
+    openExportDialog() {
+      this.exportDialogVisible = true;
+    },
+    async onExportConfirm(dateLimit) {
+      this.exportLoading = true;
+      const ok = await runListExport({
+        apiFn: orderListApi,
+        params: {
+          orderNo: this.tableFrom.orderNo,
+          status: this.tableFrom.status,
+          type: this.tableFrom.type,
+        },
+        dateLimit: dateLimit || this.tableFrom.dateLimit,
+        filename: '订单导出',
+        header: [
+          '订单号',
+          '订单类型',
+          '下单会员账号',
+          '下单会员昵称',
+          '下单会员UID',
+          '推广员',
+          '推广员账号',
+          '收货人姓名',
+          '收货人电话',
+          '收货人地址',
+          '商品信息',
+          '实际支付',
+          '支付方式',
+          '订单状态',
+          '下单时间',
+        ],
+        filterVal: [
+          'orderId',
+          'orderType',
+          'account',
+          'nikeName',
+          'uid',
+          'spreadName',
+          'spreadAccount',
+          'realName',
+          'userPhone',
+          'userAddress',
+          'productName',
+          'payPrice',
+          'payTypeStr',
+          'statusStr',
+          'createTime',
+        ],
+        mapRow: (row) => {
+          const productName = (row.productList || [])
+            .map((item) => {
+              const info = item.info || {};
+              return `${info.productName || ''}${info.sku ? ' | ' + info.sku : ''}`;
+            })
+            .filter(Boolean)
+            .join('；');
+          const statusStr =
+            (row.statusStr && (row.statusStr.value || row.statusStr)) ||
+            '';
+          return {
+            orderId: row.orderId,
+            orderType: row.orderType,
+            account: row.account || '',
+            nikeName: row.nikeName || '',
+            uid: row.uid || '',
+            spreadName: row.spreadName || '',
+            spreadAccount: row.spreadAccount || '',
+            realName: row.realName || '',
+            userPhone: row.userPhone || '',
+            userAddress: row.userAddress || '',
+            productName,
+            payPrice: row.payPrice,
+            payTypeStr: row.payTypeStr,
+            statusStr,
+            createTime: row.createTime,
+          };
+        },
       });
+      this.exportLoading = false;
+      if (ok) this.exportDialogVisible = false;
     },
     handleCheckAllChange(val) {
       this.checkedCities = val ? this.columnData : [];

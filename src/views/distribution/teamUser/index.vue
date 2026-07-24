@@ -14,10 +14,16 @@
           <el-form-item>
             <el-button type="primary" @click="searchList">搜索</el-button>
             <el-button @click="resetList">重置</el-button>
+            <el-button @click="openExportDialog">导出</el-button>
           </el-form-item>
         </el-form>
       </div>
     </el-card>
+    <export-date-dialog
+      :visible.sync="exportDialogVisible"
+      :loading="exportLoading"
+      @confirm="onExportConfirm"
+    />
     <el-card class="box-card mt14">
       <el-table v-loading="listLoading" :data="tableData.data" style="width: 100%" size="mini" highlight-current-row>
         <el-table-column prop="uid" label="UID" min-width="70" />
@@ -62,11 +68,16 @@
 
 <script>
 import { teamLevelAllApi, teamLevelUserListApi } from '@/api/teamLevel';
+import ExportDateDialog from '@/components/ExportDateDialog';
+import { runListExport } from '@/utils/listExport';
 
 export default {
   name: 'TeamLevelUser',
+  components: { ExportDateDialog },
   data() {
     return {
+      exportDialogVisible: false,
+      exportLoading: false,
       listLoading: false,
       levelList: [],
       tableFrom: {
@@ -86,6 +97,60 @@ export default {
     this.getList();
   },
   methods: {
+    openExportDialog() {
+      this.exportDialogVisible = true;
+    },
+    async onExportConfirm(dateLimit) {
+      this.exportLoading = true;
+      const ok = await runListExport({
+        apiFn: teamLevelUserListApi,
+        params: {
+          keywords: this.tableFrom.keywords,
+          teamLevelId: this.tableFrom.teamLevelId,
+        },
+        dateLimit,
+        clientDateField: 'updateTime',
+        filename: '团队关联用户导出',
+        header: [
+          'UID',
+          '昵称',
+          '手机号',
+          '团队等级',
+          '等级序号',
+          '自购已支付(元)',
+          '自购已完成(元)',
+          '团队已支付(元)',
+          '团队已完成(元)',
+          '更新时间',
+        ],
+        filterVal: [
+          'uid',
+          'nickname',
+          'phone',
+          'teamLevelName',
+          'grade',
+          'selfPaidAmount',
+          'selfCompleteAmount',
+          'teamPaidAmount',
+          'teamCompleteAmount',
+          'updateTime',
+        ],
+        mapRow: (row) => ({
+          uid: row.uid,
+          nickname: row.nickname || '',
+          phone: row.phone || '',
+          teamLevelName: row.teamLevelName || this.matchLevelName(row.teamLevelId),
+          grade: row.grade || '',
+          selfPaidAmount: row.selfPaidAmount,
+          selfCompleteAmount: row.selfCompleteAmount,
+          teamPaidAmount: row.teamPaidAmount,
+          teamCompleteAmount: row.teamCompleteAmount,
+          updateTime: row.updateTime || '',
+        }),
+      });
+      this.exportLoading = false;
+      if (ok) this.exportDialogVisible = false;
+    },
     normalizeListResult(res) {
       if (Array.isArray(res)) {
         return { data: res, total: res.length };

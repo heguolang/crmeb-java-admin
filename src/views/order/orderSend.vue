@@ -15,6 +15,20 @@
       @submit.native.prevent
       :rules="rules"
     >
+      <div class="order-info-panel" v-if="displayOrder">
+        <div class="panel-title">订单信息</div>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <div class="info-item">下单会员：{{ memberText }}</div>
+            <div class="info-item">推广员：{{ spreadText }}</div>
+          </el-col>
+          <el-col :span="12">
+            <div class="info-item">收货人：{{ displayOrder.realName || displayOrder.nikeName || '-' }}</div>
+            <div class="info-item">收货电话：{{ displayOrder.userPhone || '-' }}</div>
+            <div class="info-item">收货地址：{{ displayOrder.userAddress || '-' }}</div>
+          </el-col>
+        </el-row>
+      </div>
       <el-form-item label="选择类型：">
         <el-radio-group
           v-model="formItem.deliveryType"
@@ -238,6 +252,32 @@ export default {
     orderDetail: {
       type: Object,
       default: null,
+    },
+    orderInfo: {
+      type: Object,
+      default: null,
+    },
+  },
+  computed: {
+    displayOrder() {
+      return this.orderInfo || this.orderDetail || null;
+    },
+    memberText() {
+      const order = this.displayOrder;
+      if (!order) return '-';
+      const account = order.account || '';
+      const uid = order.uid || '';
+      const nick = order.nikeName || '';
+      const accountPart = account ? `${account}${uid ? '(' + uid + ')' : ''}` : uid ? `UID:${uid}` : '';
+      if (nick && accountPart) return `${accountPart} / 昵称:${nick}`;
+      if (nick) return `昵称:${nick}${uid ? '(' + uid + ')' : ''}`;
+      return accountPart || '-';
+    },
+    spreadText() {
+      const order = this.displayOrder;
+      if (!order || !order.spreadUid) return '-';
+      const name = order.spreadName || '-';
+      return order.spreadAccount ? `${name}(${order.spreadAccount})` : name;
     },
   },
   data() {
@@ -481,6 +521,23 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.order-info-panel {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  background: #f7f8fa;
+  border-radius: 6px;
+  .panel-title {
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #303133;
+  }
+  .info-item {
+    margin-bottom: 6px;
+    color: #606266;
+    line-height: 1.5;
+    word-break: break-all;
+  }
+}
 .width8 {
   width: 100%;
 }

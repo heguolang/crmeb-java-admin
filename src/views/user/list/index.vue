@@ -159,8 +159,15 @@
           <el-button :disabled="!selectionList.length" @click="setBatch('label')" v-hasPermi="['admin:user:tag']"
             >批量设置标签</el-button
           >
+          <el-button @click="openExportDialog">导出</el-button>
         </div>
       </div>
+      <export-date-dialog
+        :visible.sync="exportDialogVisible"
+        :loading="exportLoading"
+        :value="timeVal"
+        @confirm="onExportConfirm"
+      />
       <el-table
         ref="table"
         v-loading="listLoading"
@@ -237,6 +244,11 @@
         <el-table-column prop="consumeVoucher" label="消费券" min-width="100" v-if="checkedCities.includes('消费券')" />
         <el-table-column prop="warrant" label="权证" min-width="100" v-if="checkedCities.includes('权证')" />
         <el-table-column prop="warrantAddress" label="权证地址" min-width="180" show-overflow-tooltip v-if="checkedCities.includes('权证地址')" />
+        <el-table-column label="团队等级" min-width="120" v-if="checkedCities.includes('团队等级')">
+          <template slot-scope="scope">
+            <span>{{ matchTeamLevelName(scope.row.teamLevel) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="160" fixed="right" :render-header="renderHeader">
           <template slot-scope="scope">
             <a @click="onDetails(scope.row.uid)" v-hasPermi="['admin:user:topdetail']">详情</a>
@@ -547,13 +559,15 @@ import userDetails from './userDetails';
 import levelEdit from './level';
 import teamLevelEdit from './teamLevel';
 import userList from '@/components/userList';
+import ExportDateDialog from '@/components/ExportDateDialog';
+import { runListExport, resolveLevelName } from '@/utils/listExport';
 import * as logistics from '@/api/logistics.js';
 import Cookies from 'js-cookie';
 import { checkPermi } from '@/utils/permission'; // 权限判断函数
 import { Debounce } from '@/utils/validate';
 export default {
   name: 'UserIndex',
-  components: { editFrom, userDetails, userList, levelEdit, teamLevelEdit },
+  components: { editFrom, userDetails, userList, levelEdit, teamLevelEdit, ExportDateDialog },
   filters: {
     sexFilter(status) {
       const statusMap = {
@@ -567,6 +581,8 @@ export default {
   },
   data() {
     return {
+      exportDialogVisible: false,
+      exportLoading: false,
       formExtension: {
         image: '',
         spreadUid: '',
@@ -678,8 +694,8 @@ export default {
       idKey: 'uid',
       card_select_show: false,
       checkAll: false,
-      checkedCities: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '积分', '消费券', '权证', '权证地址'],
-      columnData: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '积分', '消费券', '权证', '权证地址'],
+      checkedCities: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '积分', '消费券', '权证', '权证地址', '团队等级'],
+      columnData: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '积分', '消费券', '权证', '权证地址', '团队等级'],
       isIndeterminate: true,
     };
   },
@@ -1047,6 +1063,14 @@ export default {
           this.teamLevelList = [];
         });
     },
+    matchTeamLevelName(teamLevelId) {
+      if (teamLevelId === undefined || teamLevelId === null || teamLevelId === '' || Number(teamLevelId) === 0) {
+        return '-';
+      }
+      const level = (this.teamLevelList || []).find((item) => Number(item.id) === Number(teamLevelId));
+      if (!level) return '-';
+      return level.grade ? `${level.name}（Lv${level.grade}）` : level.name;
+    },
     // 列表
     getList(num) {
       this.listLoading = true;
@@ -1071,11 +1095,84 @@ export default {
       this.checkedCities = this.$cache.local.has('user_stroge')
         ? this.$cache.local.getJSON('user_stroge')
         : this.checkedCities;
-      // 合并新增列，避免旧缓存隐藏消费券/权证/佣金列
-      const merged = Array.from(new Set([...(this.checkedCities || []), '消费券', '权证', '权证地址', '佣金']));
+      // 合并新增列，避免旧缓存隐藏消费券/权证/佣金/团队等级列
+      const merged = Array.from(new Set([...(this.checkedCities || []), '消费券', '权证', '权证地址', '佣金', '团队等级']));
       this.checkedCities = merged.filter((item) => this.columnData.includes(item));
       this.$cache.local.setJSON('user_stroge', this.checkedCities);
       this.$set(this, 'card_select_show', false);
+    },
+    openExportDialog() {
+      this.exportDialogVisible = true;
+    },
+    async onExportConfirm(dateLimit) {
+      this.exportLoading = true;
+      const sexMap = { 0: '未知', 1: '男', 2: '女', 3: '保密' };
+      const params = {
+        ...this.userFrom,
+        userType: this.loginType == 0 ? '' : this.loginType,
+        level: this.levelData.join(','),
+        groupId: this.groupData.join(','),
+        labelId: this.labelData.join(','),
+      };
+      const ok = await runListExport({
+        apiFn: userListApi,
+        params,
+        dateLimit: dateLimit || this.userFrom.dateLimit,
+        filename: '用户导出',
+        header: [
+          'ID',
+          '姓名',
+          '性别',
+          '用户等级',
+          '分组',
+          '推荐人',
+          '佣金',
+          '手机号',
+          '余额',
+          '积分',
+          '消费券',
+          '权证',
+          '权证地址',
+          '团队等级',
+          '注册时间',
+        ],
+        filterVal: [
+          'uid',
+          'nickname',
+          'sexText',
+          'levelName',
+          'groupName',
+          'spreadNickname',
+          'brokeragePrice',
+          'phone',
+          'nowMoney',
+          'integral',
+          'consumeVoucher',
+          'warrant',
+          'warrantAddress',
+          'teamLevelName',
+          'createTime',
+        ],
+        mapRow: (row) => ({
+          uid: row.uid,
+          nickname: row.nickname,
+          sexText: sexMap[row.sex] || '',
+          levelName: resolveLevelName(row.level),
+          groupName: row.groupName || '',
+          spreadNickname: row.spreadNickname || '',
+          brokeragePrice: row.brokeragePrice,
+          phone: row.phone,
+          nowMoney: row.nowMoney,
+          integral: row.integral,
+          consumeVoucher: row.consumeVoucher,
+          warrant: row.warrant,
+          warrantAddress: row.warrantAddress || '',
+          teamLevelName: this.matchTeamLevelName(row.teamLevel),
+          createTime: row.createTime || '',
+        }),
+      });
+      this.exportLoading = false;
+      if (ok) this.exportDialogVisible = false;
     },
     // 设置选中的方法
     setSelectRow() {

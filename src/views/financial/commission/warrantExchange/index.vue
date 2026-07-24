@@ -41,11 +41,18 @@
             <el-form-item>
               <el-button type="primary" size="small" @click="getList(1)">搜索</el-button>
               <el-button size="small" @click="handleReset">重置</el-button>
+              <el-button size="small" @click="openExportDialog">导出</el-button>
             </el-form-item>
           </el-form>
         </div>
       </div>
     </el-card>
+    <export-date-dialog
+      :visible.sync="exportDialogVisible"
+      :loading="exportLoading"
+      :value="timeVal"
+      @confirm="onExportConfirm"
+    />
     <el-card class="box-card mt14">
       <el-table v-loading="listLoading" :data="tableData.data" style="width: 100%" size="mini" highlight-current-row>
         <el-table-column prop="id" label="ID" width="70" />
@@ -106,11 +113,16 @@
 
 <script>
 import { warrantExchangeListApi, warrantExchangeStatusApi } from '@/api/financial';
+import ExportDateDialog from '@/components/ExportDateDialog';
+import { runListExport } from '@/utils/listExport';
 
 export default {
   name: 'WarrantExchangeApply',
+  components: { ExportDateDialog },
   data() {
     return {
+      exportDialogVisible: false,
+      exportLoading: false,
       timeVal: [],
       listLoading: false,
       tableData: {
@@ -132,6 +144,42 @@ export default {
     this.getList();
   },
   methods: {
+    openExportDialog() {
+      this.exportDialogVisible = true;
+    },
+    async onExportConfirm(dateLimit) {
+      this.exportLoading = true;
+      const statusMap = { 0: '待处理', 1: '已处理' };
+      const ok = await runListExport({
+        apiFn: warrantExchangeListApi,
+        params: {
+          keywords: this.tableFrom.keywords || undefined,
+          payType: this.tableFrom.payType || undefined,
+          uid: this.tableFrom.uid ? Number(this.tableFrom.uid) : undefined,
+          status:
+            this.tableFrom.status === '' || this.tableFrom.status === null || this.tableFrom.status === undefined
+              ? undefined
+              : Number(this.tableFrom.status),
+        },
+        dateLimit: dateLimit || this.tableFrom.dateLimit,
+        filename: '权证兑换导出',
+        header: ['ID', 'UID', '用户名', '兑换方式', '消耗数量', '兑换权证数量', '地址', '状态', '申请时间'],
+        filterVal: ['id', 'uid', 'nickname', 'payTypeText', 'payAmount', 'warrantAmount', 'address', 'statusText', 'createTime'],
+        mapRow: (row) => ({
+          id: row.id,
+          uid: row.uid,
+          nickname: row.nickname || '',
+          payTypeText: row.payType === 'voucher' ? '消费券兑权证' : '积分兑权证',
+          payAmount: row.payAmount,
+          warrantAmount: row.warrantAmount,
+          address: row.address || '',
+          statusText: statusMap[row.status] != null ? statusMap[row.status] : row.status,
+          createTime: row.createTime || '',
+        }),
+      });
+      this.exportLoading = false;
+      if (ok) this.exportDialogVisible = false;
+    },
     handleReset() {
       this.tableFrom.uid = '';
       this.tableFrom.status = '';

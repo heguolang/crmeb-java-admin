@@ -149,6 +149,37 @@
                 </li>
               </ul>
             </div>
+            <div class="detailSection">
+              <div class="title">分佣信息</div>
+              <el-table
+                v-if="orderDatalist.brokerageList && orderDatalist.brokerageList.length"
+                class="mt10"
+                size="small"
+                :data="orderDatalist.brokerageList"
+                border
+              >
+                <el-table-column label="奖励类型" min-width="110" prop="brokerageLevelName" />
+                <el-table-column label="获佣会员" min-width="180">
+                  <template slot-scope="scope">
+                    <div>{{ scope.row.userName || '-' }}</div>
+                    <div class="sub-text">
+                      UID:{{ scope.row.uid || '-' }}
+                      <span v-if="scope.row.account"> / {{ scope.row.account }}</span>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column label="标题" min-width="140" prop="title" show-overflow-tooltip />
+                <el-table-column label="金额" min-width="100">
+                  <template slot-scope="scope">
+                    <span class="price-text">+{{ scope.row.price }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="状态" min-width="90" prop="statusName" />
+                <el-table-column label="备注" min-width="220" prop="mark" show-overflow-tooltip />
+                <el-table-column label="时间" min-width="160" prop="createTime" />
+              </el-table>
+              <div v-else class="empty-brokerage">本单暂无分佣记录（分销奖/团队奖/平级奖等）</div>
+            </div>
             <div v-if="orderExtend.length" class="detailSection">
               <div class="title">自定义留言</div>
               <ul class="list">
@@ -342,8 +373,12 @@ export default {
     onCloseVisible() {
       this.editDeliveryDialogVisible = false;
     },
-    handleClose() {
+    handleClose(done) {
       this.dialogVisible = false;
+      this.activeName = 'detail';
+      if (typeof done === 'function') {
+        done();
+      }
     },
     // 获取订单退款信息
     getRefundOrderDetail(id) {
@@ -518,13 +553,33 @@ export default {
   display: block !important;
   margin-bottom: 0 !important;
   padding: 0 !important;
+  position: relative;
+  z-index: 10;
 }
 ::v-deep .el-drawer__close-btn {
   position: absolute;
   right: 20px;
   top: 30px;
+  z-index: 20;
+  cursor: pointer;
 }
 ::v-deep .el-tabs__nav .el-tabs__item:nth-of-type(1) {
   padding-left: 20px !important;
+}
+.empty-brokerage {
+  color: #909399;
+  font-size: 13px;
+  padding: 8px 0;
+}
+.sub-text {
+  color: #909399;
+  font-size: 12px;
+}
+.price-text {
+  color: #e6a23c;
+  font-weight: 600;
+}
+.mt10 {
+  margin-top: 10px;
 }
 </style>
