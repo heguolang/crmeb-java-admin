@@ -15,7 +15,7 @@
         class="mb15"
         type="info"
         :closable="false"
-        title="说明：团队等级独立于会员等级。升级门槛为自购订单金额与团队订单金额；团队极差比例须随等级序号递增。升级判定逻辑将后续接入。"
+        title="说明：团队等级独立于会员等级。升级门槛为自购订单金额与团队订单金额；自购门槛须不低于上一级，团队门槛须高于上一级；团队极差比例须随等级序号递增。"
         show-icon
       />
       <el-table v-loading="listLoading" :data="tableData.data" style="width: 100%" size="mini">

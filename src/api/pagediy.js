@@ -79,6 +79,7 @@ export function pagediyGetSetHome(id) {
 }
 /**
  * 获取小程序二维码
+ * 注意：依赖微信小程序 AppID，未配置正确时会报 40013 invalid appid
  * @returns {*}
  */
 export function wechatQrcodeApi(data) {

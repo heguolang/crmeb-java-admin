@@ -277,6 +277,9 @@
                 <el-dropdown-item @click.native="setPhone(scope.row)" v-if="checkPermi(['admin:user:update:phone'])"
                   >修改手机号</el-dropdown-item
                 >
+                <el-dropdown-item @click.native="setPassword(scope.row)" v-if="checkPermi(['admin:user:update:phone'])"
+                  >修改密码</el-dropdown-item
+                >
                 <el-dropdown-item
                   @click.native="onLevel(scope.row.uid, scope.row.level)"
                   v-if="checkPermi(['admin:user:update:level'])"
@@ -550,6 +553,7 @@ import {
   foundsApi,
   updateSpreadApi,
   updatePhoneApi,
+  updateUserPasswordApi,
 } from '@/api/user';
 import { voucherWarrantOperateApi } from '@/api/marketing';
 import { teamLevelAllApi } from '@/api/teamLevel';
@@ -731,6 +735,28 @@ export default {
           updatePhoneApi({ id: row.uid, phone: value }).then(() => {
             this.$message.success('编辑成功');
             this.getList();
+          });
+        })
+        .catch(() => {
+          this.$message.info('取消输入');
+        });
+    },
+    setPassword(row) {
+      this.$prompt('', '修改密码', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputErrorMessage: '请输入新密码',
+        inputType: 'password',
+        inputPlaceholder: '请输入新密码（6-18位）',
+        closeOnClickModal: false,
+        inputValidator: (value) => {
+          if (!value) return '请填写密码';
+          if (value.length < 6 || value.length > 18) return '密码长度为6-18位';
+        },
+      })
+        .then(({ value }) => {
+          updateUserPasswordApi({ id: row.uid, password: value }).then(() => {
+            this.$message.success('修改成功');
           });
         })
         .catch(() => {

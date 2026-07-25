@@ -411,6 +411,17 @@ export function updatePhoneApi(params) {
 }
 
 /**
+ * @description 修改用户密码（无需验证码）
+ */
+export function updateUserPasswordApi(params) {
+  return request({
+    url: `/admin/user/update/password`,
+    method: 'get',
+    params,
+  });
+}
+
+/**
  * 查询是否需要开启图形验证码
  * @returns {*}
  */

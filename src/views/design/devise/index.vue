@@ -35,7 +35,9 @@
                     style="font-size: 12px"
                     >首页装修</el-button
                   >
+                  <!-- 小程序码依赖微信 AppID，未配置/无效时会全局报错，默认屏蔽；启用时将 enableMiniQrcode 改为 true -->
                   <el-card
+                    v-if="enableMiniQrcode"
                     body-style="background-color: #F9F9F9;"
                     class="mb20 Qrcode-card"
                     shadow="never"
@@ -52,7 +54,8 @@
                       </el-col>
                       <el-col v-bind="grid2">
                         <div style="text-align: right">
-                          <el-image :src="Qrcode" class="Qrcode_img"></el-image>
+                          <el-image v-if="Qrcode" :src="Qrcode" class="Qrcode_img"></el-image>
+                          <span v-else class="tips">加载失败</span>
                         </div>
                       </el-col>
                     </el-row>
@@ -62,8 +65,8 @@
                       <el-col v-bind="grid2">
                         <div class="acea-row row-between-wrapper Qrcode-box">
                           <div>
-                            <div class="title mb20">微信公众号</div>
-                            <div class="tips">扫描右侧二维码查看</div>
+                            <div class="title mb20">微信公众号 / H5</div>
+                            <div class="tips">扫描右侧二维码查看移动端页面</div>
                           </div>
                         </div>
                       </el-col>
@@ -74,6 +77,9 @@
                       </el-col>
                     </el-row>
                   </el-card>
+                  <div class="preview-tip" v-if="frontDomain">
+                    预览地址：{{ frontDomain }}（左侧为 H5 页面预览，非小程序页面）
+                  </div>
                 </div>
               </el-col>
             </el-row>
@@ -252,36 +258,57 @@ export default {
         perViewUrl: '',
       },
       Qrcode: '', //小程序二维码
+      // 未配置正确小程序 AppID 时调用微信接口会全局弹错，默认关闭
+      enableMiniQrcode: false,
     };
   },
   mounted() {
-    //判断移动端配置地址中是否包含https://，http://
-    let url = ['https://', 'http://'];
-    let frontDomain = localStorage.getItem('frontDomain');
-    let contains = url.some((item) => frontDomain.includes(item));
-    this.frontDomain = contains ? frontDomain : `https://${frontDomain}`;
+    this.frontDomain = this.normalizeFrontDomain(localStorage.getItem('frontDomain'));
 
     if (checkPermi(['admin:pagediy:list'])) this.getList();
-    this.getWechatQrcode();
-    this.getQRcode();
+    if (this.enableMiniQrcode) {
+      this.getWechatQrcode();
+    }
+    this.$nextTick(() => {
+      this.getQRcode();
+    });
   },
   methods: {
     checkPermi,
-    //微信二维码
+    /**
+     * 规范化移动端预览地址：
+     * - 已带 http/https 则原样使用（建议在「移动端域名/site_url」配置完整地址）
+     * - 未带协议时默认 http，避免强制 https 导致无证书站点预览失败
+     */
+    normalizeFrontDomain(domain) {
+      if (!domain) return '';
+      const value = String(domain).trim();
+      if (/^https?:\/\//i.test(value)) {
+        return value;
+      }
+      return `http://${value}`;
+    },
+    //微信二维码（H5 地址）
     getQRcode() {
-      document.getElementById('diyQrcode').innerHTML = '';
+      const el = document.getElementById('diyQrcode');
+      if (!el || !this.frontDomain) return;
+      el.innerHTML = '';
       new QRcode('diyQrcode', { width: 120, height: 120, text: this.frontDomain });
     },
-    //小程序二维码
+    //小程序二维码（调用微信接口，与左侧 H5 预览无关）
     getWechatQrcode() {
-      // env_version	默认值为："release"，要打开的小程序版本。正式版为"release"，体验版为"trial"，开发版为"develop"，仅在微信外打开时生效。
       wechatQrcodeApi({
         scene: 'id=0',
         path: 'pages/index/index',
         env_version: 'release',
-      }).then((res) => {
-        this.Qrcode = res.code;
-      });
+      })
+        .then((res) => {
+          this.Qrcode = res.code;
+        })
+        .catch(() => {
+          // 静默失败，避免「invalid appid」干扰装修页使用
+          this.Qrcode = '';
+        });
     },
     //点击左侧菜单
     ProductNavTab(index) {
@@ -459,6 +486,12 @@ export default {
   height: 669px;
   border-radius: 10px;
   border: 1px solid #eee;
+}
+.preview-tip {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #909399;
+  word-break: break-all;
 }
 .list-btn {
   padding: 0 !important;

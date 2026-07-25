@@ -442,6 +442,13 @@ export default {
       titleBgColor: (state) => state.mobildConfig.titleBgColor, //标题背景色
     }),
     ...mapGetters(['frontDomain']),
+    // H5 预览地址（未带协议时默认 http，避免强制 https）
+    previewFrontUrl() {
+      const domain = (this.frontDomain || '').trim();
+      if (!domain) return '';
+      if (/^https?:\/\//i.test(domain)) return domain;
+      return `http://${domain}`;
+    },
     //标题样式
     pageTitle() {
       return [{ backgroundColor: this.titleBgColor }, { color: this.titleColor }];
@@ -534,10 +541,12 @@ export default {
       this.isShow = false;
       this.visible = false;
     },
-    //预览二维码
+    //预览二维码（H5 地址，非小程序）
     getQRcode() {
-      document.getElementById('diyQrcode').innerHTML = '';
-      new QRcode('diyQrcode', { width: 135, height: 135, text: this.frontDomain + '?id=' + this.pageId });
+      const el = document.getElementById('diyQrcode');
+      if (!el || !this.previewFrontUrl) return;
+      el.innerHTML = '';
+      new QRcode('diyQrcode', { width: 135, height: 135, text: this.previewFrontUrl + '?id=' + this.pageId });
     },
     //diy详情
     getInfo() {

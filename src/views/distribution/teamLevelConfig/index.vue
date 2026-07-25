@@ -54,7 +54,8 @@
       </el-form>
     </el-card>
 
-    <el-card class="box-card" shadow="never">
+    <!-- 极差/平级比例已在「团队等级」新增/编辑中配置，此处重复模块暂时屏蔽 -->
+    <el-card v-if="showLevelBrokerageConfig" class="box-card" shadow="never">
       <div slot="header" class="card-header">
         <span class="card-title">团队等级返佣配置</span>
         <el-button
@@ -110,6 +111,7 @@
     </el-card>
 
     <el-dialog
+      v-if="showLevelBrokerageConfig"
       :title="dialogTitle"
       :visible.sync="dialogVisible"
       width="560px"
@@ -177,6 +179,8 @@ export default {
   name: 'TeamLevelConfig',
   data() {
     return {
+      // 与「团队等级」编辑中的极差/平级配置重复，默认屏蔽；需要时改为 true
+      showLevelBrokerageConfig: false,
       manageLoading: false,
       manageSaving: false,
       manageForm: {
@@ -210,8 +214,10 @@ export default {
   },
   created() {
     this.fetchManage();
-    this.fetchList();
-    this.fetchLevelList();
+    if (this.showLevelBrokerageConfig) {
+      this.fetchList();
+      this.fetchLevelList();
+    }
   },
   methods: {
     async fetchManage() {
