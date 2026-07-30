@@ -187,7 +187,7 @@
                 <el-radio :label="true">多规格</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item label="佣金设置：" props="isSub">
+            <el-form-item label="规格设置：" props="isSub">
               <el-radio-group
                 v-model="formValidate.isSub"
                 @change="onChangetype(formValidate.isSub)"

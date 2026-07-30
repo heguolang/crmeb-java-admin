@@ -118,7 +118,7 @@
             <el-radio label="0">关闭</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item prop="storeBrokerageRatio">
+        <el-form-item prop="storeBrokerageRatio" v-show="false">
           <span slot="label">
             <span>一级返佣比例：</span>
             <el-tooltip
@@ -141,7 +141,7 @@
           ></el-input-number>
           <span>%</span>
         </el-form-item>
-        <el-form-item prop="storeBrokerageTwo">
+        <el-form-item prop="storeBrokerageTwo" v-show="false">
           <span slot="label">
             <span>二级返佣比例：</span>
             <el-tooltip
@@ -232,8 +232,6 @@ export default {
       loading: true,
       rules: {
         brokerageFuncStatus: [{ required: true, message: '请选择是否启用分销', trigger: 'change' }],
-        storeBrokerageRatio: [{ required: true, message: '请输入一级返佣比例', trigger: 'blur' }],
-        storeBrokerageTwo: [{ required: true, message: '请输入二级返佣比例', trigger: 'blur' }],
         registerDefaultIsPromoter: [{ required: true, message: '请选择注册是否默认推广员', trigger: 'change' }],
         registerDefaultUserLevel: [{ required: true, message: '请选择注册默认会员等级', trigger: 'change' }],
       },

@@ -81,6 +81,27 @@ export function extractConfigSaveApi(data) {
 }
 
 /**
+ * 余额功能设置 获取
+ */
+export function balanceFeatureConfigGetApi() {
+  return request({
+    url: '/admin/finance/balance/feature/config',
+    method: 'get',
+  });
+}
+
+/**
+ * 余额功能设置 保存
+ */
+export function balanceFeatureConfigSaveApi(data) {
+  return request({
+    url: '/admin/finance/balance/feature/config',
+    method: 'post',
+    data,
+  });
+}
+
+/**
  * 充值 列表
  * @param pram
  */

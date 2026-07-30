@@ -3,8 +3,13 @@
     <el-card shadow="never">
       <div slot="header">消费券 / 权证配置</div>
       <el-form ref="form" :model="form" :rules="rules" label-width="220px" v-loading="loading" style="max-width: 720px">
-        <el-form-item label="功能开关">
+        <el-form-item label="兑换开关">
           <el-switch v-model="form.voucherWarrantSwitch" active-value="1" inactive-value="0" />
+          <div class="form-tip">关闭后 APP 端无法进行积分/消费券/MLSS 兑换</div>
+        </el-form-item>
+        <el-form-item label="释放开关">
+          <el-switch v-model="form.integralDailyReleaseSwitch" active-value="1" inactive-value="0" />
+          <div class="form-tip">关闭后定时任务不再执行每日积分强制释放</div>
         </el-form-item>
         <el-form-item label="多少积分 = 1 消费券（主动兑换）" prop="integralToVoucherRatio">
           <el-input v-model="form.integralToVoucherRatio" placeholder="例如 100，仅主动兑换使用" />
@@ -69,6 +74,7 @@ export default {
       saving: false,
       form: {
         voucherWarrantSwitch: '1',
+        integralDailyReleaseSwitch: '1',
         integralToVoucherRatio: '100',
         integralDailyReleaseExchangeRatio: '1',
         integralDailyReleaseRatio: '1',
@@ -117,3 +123,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.form-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+}
+</style>

@@ -40,6 +40,12 @@ const financialRouter = {
           meta: { title: '提现设置', icon: '' },
         },
         {
+          path: 'balanceFeature',
+          component: () => import('@/views/financial/balanceFeature/config/index'),
+          name: 'balanceFeatureConfig',
+          meta: { title: '余额功能设置', icon: '' },
+        },
+        {
           path: 'warrantExchange',
           component: () => import('@/views/financial/commission/warrantExchange/index'),
           name: 'warrantExchange',
