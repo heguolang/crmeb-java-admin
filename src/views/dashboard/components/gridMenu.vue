@@ -111,12 +111,16 @@ export default {
       statisticData: [
         { title: '待发货订单', num: 0, path: '/order/index', perms: ['admin:order:list'] },
         { title: '退款中订单', num: 0, path: '/order/index', perms: ['admin:order:list'] },
-        { title: '待核销订单', num: 0, path: '/order/index', perms: ['admin:order:list'] },
         { title: '库存预警', num: 0, path: '/store/index', perms: ['admin:product:list'] },
         { title: '上架商品', num: 0, path: '/store/index', perms: ['admin:product:list'] },
         { title: '仓库商品', num: 0, path: '/store/index', perms: ['admin:product:list'] },
         { title: '提现待审核', num: 0, path: '/financial/commission/template', perms: ['admin:finance:apply:list'] },
-        { title: '账户充值', num: 0, path: '/financial/record/charge', perms: ['admin:recharge:list'] },
+        { title: '总销售额', num: 0, path: '/order/index', perms: ['admin:order:list'] },
+        { title: '当前佣金', num: 0, path: '/user/index', perms: ['admin:user:list'] },
+        { title: '当前余额', num: 0, path: '/user/index', perms: ['admin:user:list'] },
+        { title: '当前积分', num: 0, path: '/user/index', perms: ['admin:user:list'] },
+        { title: '当前消费券', num: 0, path: '/user/index', perms: ['admin:user:list'] },
+        { title: '当前MLSS', num: 0, path: '/user/index', perms: ['admin:user:list'] },
       ],
       optionData: {},
       applyNum: 0,
@@ -156,12 +160,16 @@ export default {
       businessData().then((res) => {
         this.statisticData[0].num = res.notShippingOrderNum; //待发货订单
         this.statisticData[1].num = res.refundingOrderNum; //退款中订单
-        this.statisticData[2].num = res.notWriteOffOrderNum; //待核销订单
-        this.statisticData[3].num = res.vigilanceInventoryNum; //库存预警
-        this.statisticData[4].num = res.onSaleProductNum; //上架商品
-        this.statisticData[5].num = res.notSaleProductNum; //仓库商品
-        this.statisticData[6].num = res.notAuditNum; //提现待审核
-        this.statisticData[7].num = res.totalRechargeAmount; //账户充值
+        this.statisticData[2].num = res.vigilanceInventoryNum; //库存预警
+        this.statisticData[3].num = res.onSaleProductNum; //上架商品
+        this.statisticData[4].num = res.notSaleProductNum; //仓库商品
+        this.statisticData[5].num = res.notAuditNum; //提现待审核
+        this.statisticData[6].num = res.totalSalesAmount; //总销售额
+        this.statisticData[7].num = res.totalBrokerageAmount; //当前佣金
+        this.statisticData[8].num = res.totalBalanceAmount; //当前余额
+        this.statisticData[9].num = res.totalIntegral; //当前积分
+        this.statisticData[10].num = res.totalConsumeVoucher; //当前消费券
+        this.statisticData[11].num = res.totalWarrant; //当前MLSS
       });
     },
   },
