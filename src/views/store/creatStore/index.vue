@@ -525,6 +525,30 @@
               </el-form-item>
             </el-col>
             <el-col v-bind="grid">
+              <el-form-item label="是否参与分销：">
+                <el-switch
+                  v-model="formValidate.isBrokerage"
+                  :active-value="true"
+                  :inactive-value="false"
+                  active-text="参与"
+                  inactive-text="不参与"
+                  :disabled="isDisabled"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col v-bind="grid">
+              <el-form-item label="是否参与团队奖：">
+                <el-switch
+                  v-model="formValidate.isTeamBrokerage"
+                  :active-value="true"
+                  :inactive-value="false"
+                  active-text="参与"
+                  inactive-text="不参与"
+                  :disabled="isDisabled"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col v-bind="grid">
               <el-form-item label="虚拟销量：">
                 <el-input-number
                   controls-position="right"
@@ -628,6 +652,8 @@ const defaultObj = {
   sort: 0,
   giveIntegral: 0,
   isIntegral: false,
+  isBrokerage: true,
+  isTeamBrokerage: true,
   ficti: 0,
   isShow: false,
   isBenefit: false,
@@ -840,6 +866,8 @@ export default {
                   id: info.id,
                   giveIntegral: info.giveIntegral,
                   isIntegral: !!info.isIntegral,
+                  isBrokerage: info.isBrokerage !== false,
+                  isTeamBrokerage: info.isTeamBrokerage !== false,
                   ficti: info.ficti,
                 };
                 if (info.isHot) this.checkboxGroup.push('isHot');
@@ -891,6 +919,8 @@ export default {
                   id: res.id,
                   giveIntegral: res.giveIntegral,
                   isIntegral: !!res.isIntegral,
+                  isBrokerage: res.isBrokerage !== false,
+                  isTeamBrokerage: res.isTeamBrokerage !== false,
                   ficti: res.ficti,
                 };
                 let imgs = JSON.parse(res.sliderImage);
@@ -1330,6 +1360,8 @@ export default {
             id: info.id,
             giveIntegral: info.giveIntegral,
             isIntegral: !!info.isIntegral,
+            isBrokerage: info.isBrokerage !== false,
+            isTeamBrokerage: info.isTeamBrokerage !== false,
             ficti: info.ficti,
             coupons: info.coupons,
             couponIds: info.couponIds,

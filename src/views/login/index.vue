@@ -106,7 +106,7 @@ export default {
       }
     };
     return {
-      captchatOn: true, // 是否开启行为验证码
+      captchatOn: false, // 是否开启行为验证码
       swiperList: [],
       loginLogo: '',
       backgroundImages: '',
@@ -268,11 +268,7 @@ export default {
     handleLogin() {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
-          if (Number(this.errorsNumber) > 3) {
-            this.$refs.verifyRef.show();
-          } else {
-            this.success(null);
-          }
+          this.success(null);
         } else {
           return false;
         }
@@ -307,7 +303,6 @@ export default {
         })
         .catch(async (err) => {
           await this.onBlurAccount();
-          if (Number(this.errorsNumber) > 3 && !type) await this.$refs.verifyRef.show();
           loading.close();
           this.disabled = false;
         });

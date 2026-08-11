@@ -257,7 +257,7 @@ export default {
     margin-top: 12px;
   }
   .num_data {
-    font-size: 28px;
+    font-size: 20px;
     font-weight: 600;
     color: #333;
     text-align: center;
