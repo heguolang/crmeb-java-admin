@@ -89,7 +89,7 @@
                     </div>
                     <div class="num_wrap_item">
                       <p class="num_item_bold">0</p>
-                      <p class="num_title">积分</p>
+                      <p class="num_title">信用值</p>
                     </div>
                     <div class="num_wrap_item">
                       <p class="num_item_bold">0</p>

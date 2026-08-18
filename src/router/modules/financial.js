@@ -49,7 +49,7 @@ const financialRouter = {
           path: 'warrantExchange',
           component: () => import('@/views/financial/commission/warrantExchange/index'),
           name: 'warrantExchange',
-          meta: { title: '权证兑换', icon: '' },
+          meta: { title: 'CEA兑换', icon: '' },
         },
       ],
     },

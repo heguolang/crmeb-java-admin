@@ -31,8 +31,8 @@
       <el-table v-loading="listLoading" :data="tableData.data" size="mini" highlight-current-row>
         <el-table-column prop="id" label="ID" width="60" />
         <el-table-column prop="title" label="标题" min-width="130" />
-        <el-table-column prop="warrant" label="变动权证" min-width="120" />
-        <el-table-column prop="balance" label="剩余权证" min-width="120" />
+        <el-table-column prop="warrant" label="变动CEA" min-width="120" />
+        <el-table-column prop="balance" label="剩余CEA" min-width="120" />
         <el-table-column prop="mark" label="备注" min-width="180" />
         <el-table-column prop="nickname" label="用户昵称" min-width="120" />
         <el-table-column prop="updateTime" label="时间" width="170" />

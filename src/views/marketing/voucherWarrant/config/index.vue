@@ -1,33 +1,33 @@
 <template>
   <div class="divBox">
     <el-card shadow="never">
-      <div slot="header">消费券 / 权证配置</div>
+      <div slot="header">CCEA / CEA配置</div>
       <el-form ref="form" :model="form" :rules="rules" label-width="220px" v-loading="loading" style="max-width: 720px">
         <el-form-item label="兑换开关">
           <el-switch v-model="form.voucherWarrantSwitch" active-value="1" inactive-value="0" />
-          <div class="form-tip">关闭后 APP 端无法进行积分/消费券/MLSS 兑换</div>
+          <div class="form-tip">关闭后 APP 端无法进行信用值/CCEA/CEA 兑换</div>
         </el-form-item>
         <el-form-item label="释放开关">
           <el-switch v-model="form.integralDailyReleaseSwitch" active-value="1" inactive-value="0" />
-          <div class="form-tip">关闭后定时任务不再执行每日积分强制释放</div>
+          <div class="form-tip">关闭后定时任务不再执行每日信用值强制释放</div>
         </el-form-item>
-        <el-form-item label="多少积分 = 1 消费券（主动兑换）" prop="integralToVoucherRatio">
+        <el-form-item label="多少信用值 = 1 CCEA（主动兑换）" prop="integralToVoucherRatio">
           <el-input v-model="form.integralToVoucherRatio" placeholder="例如 100，仅主动兑换使用" />
         </el-form-item>
-        <el-form-item label="每日释放：多少积分 = 1 消费券" prop="integralDailyReleaseExchangeRatio">
+        <el-form-item label="每日释放：多少信用值 = 1 CCEA" prop="integralDailyReleaseExchangeRatio">
           <el-input v-model="form.integralDailyReleaseExchangeRatio" placeholder="例如 1，与主动兑换比例独立" />
         </el-form-item>
-        <el-form-item label="每日强制释放积分百分比(%)" prop="integralDailyReleaseRatio">
+        <el-form-item label="每日强制释放信用值百分比(%)" prop="integralDailyReleaseRatio">
           <el-input v-model="form.integralDailyReleaseRatio" placeholder="例如 1，范围 0~100" />
         </el-form-item>
-        <el-form-item label="多少消费券 = 1 元余额" prop="voucherToBalanceRatio">
+        <el-form-item label="多少CCEA = 1 元余额" prop="voucherToBalanceRatio">
           <el-input v-model="form.voucherToBalanceRatio" placeholder="例如 10" />
         </el-form-item>
-        <el-form-item label="多少消费券 = 1 权证" prop="warrantNeedVoucher">
-          <el-input v-model="form.warrantNeedVoucher" placeholder="例如 5，仅用消费券兑换" />
+        <el-form-item label="多少CCEA = 1 CEA" prop="warrantNeedVoucher">
+          <el-input v-model="form.warrantNeedVoucher" placeholder="例如 5，仅用CCEA兑换" />
         </el-form-item>
-        <el-form-item label="多少积分 = 1 权证" prop="warrantNeedIntegral">
-          <el-input v-model="form.warrantNeedIntegral" placeholder="例如 100，仅用积分兑换" />
+        <el-form-item label="多少信用值 = 1 CEA" prop="warrantNeedIntegral">
+          <el-input v-model="form.warrantNeedIntegral" placeholder="例如 100，仅用信用值兑换" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="saving" @click="onSave">保存</el-button>

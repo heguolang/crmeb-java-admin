@@ -31,7 +31,7 @@
         "id": 27,
         "cate_id": 6,
         "type": 4,
-        "name": "积分详情",
+        "name": "信用值详情",
         "url": "/pages/users/user_integral/index",
         "param": " ",
         "example": "/pages/users/user_integral/index",

@@ -15,7 +15,7 @@
         class="mb15"
         type="info"
         :closable="false"
-        title="说明：等级名称仅为别名（如创客、联创）。累计消费类用「经验/消费额」判断；单笔达标需选「单笔订单」。积分与分佣比例在此配置，订单结算逻辑将后续接入。"
+        title="说明：等级名称仅为别名（如创客、联创）。累计消费类用「经验/消费额」判断；单笔达标需选「单笔订单」。信用值与分佣比例在此配置，订单结算逻辑将后续接入。"
         show-icon
       />
       <el-table v-loading="listLoading" :data="tableData.data" style="width: 100%" size="mini">
@@ -44,7 +44,7 @@
             {{ formatUpgradeCondition(scope.row) }}
           </template>
         </el-table-column>
-        <el-table-column label="积分倍数" min-width="80">
+        <el-table-column label="信用值倍数" min-width="80">
           <template slot-scope="scope">
             {{ formatMultiple(scope.row.integralMultiple) }}
           </template>

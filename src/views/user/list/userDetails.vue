@@ -12,15 +12,15 @@
             <div>{{ userDetailData.nowMoney }}</div>
           </div>
           <div class="info-row-item">
-            <div class="info-row-item-title">积分</div>
+            <div class="info-row-item-title">信用值</div>
             <div>{{ userDetailData.integral }}</div>
           </div>
           <div class="info-row-item">
-            <div class="info-row-item-title">消费券</div>
+            <div class="info-row-item-title">CCEA</div>
             <div>{{ userDetailData.consumeVoucher || 0 }}</div>
           </div>
           <div class="info-row-item">
-            <div class="info-row-item-title">权证</div>
+            <div class="info-row-item-title">CEA</div>
             <div>{{ userDetailData.warrant || 0 }}</div>
           </div>
           <div class="info-row-item">
@@ -68,7 +68,7 @@
                       <div class="value">{{ userDetailData.phone }}</div>
                     </div>
                     <div class="item">
-                      <div>权证地址：</div>
+                      <div>CEA地址：</div>
                       <div class="value">{{ userDetailData.warrantAddress || '-' }}</div>
                     </div>
                     <div class="item">
@@ -201,12 +201,12 @@
                 <el-table-column prop="payTime" label="交易完成时间" />
               </el-table>
             </el-tab-pane>
-            <!-- 积分明细 -->
-            <el-tab-pane name="2" label="积分明细">
+            <!-- 信用值明细 -->
+            <el-tab-pane name="2" label="信用值明细">
               <el-table :data="tableData" size="small" class="mt20">
                 <el-table-column prop="title" label="来源/用途" min-width="100" />
-                <el-table-column prop="integral" label="积分变化" />
-                <el-table-column prop="balance" label="变化后积分" />
+                <el-table-column prop="integral" label="信用值变化" />
+                <el-table-column prop="balance" label="变化后信用值" />
                 <el-table-column prop="updateTime" label="日期" />
                 <el-table-column prop="mark" label="备注" />
               </el-table>
@@ -215,7 +215,7 @@
             <el-tab-pane name="3" label="签到记录">
               <el-table :data="tableData" size="small" class="mt20">
                 <el-table-column prop="title" label="动作" min-width="100" />
-                <el-table-column prop="number" label="获得积分" min-width="120" />
+                <el-table-column prop="number" label="获得信用值" min-width="120" />
                 <el-table-column prop="createTime" label="签到时间" />
               </el-table>
             </el-tab-pane>

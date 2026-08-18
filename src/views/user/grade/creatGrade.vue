@@ -88,7 +88,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="赠送积分：" prop="giveIntegral">
+          <el-form-item label="赠送信用值：" prop="giveIntegral">
             <el-input-number
               v-model="formData.giveIntegral"
               :min="0"
@@ -209,7 +209,7 @@ export default {
             trigger: 'change',
           },
         ],
-        giveIntegral: [{ required: true, message: '请输入赠送积分', trigger: 'blur' }],
+        giveIntegral: [{ required: true, message: '请输入赠送信用值', trigger: 'blur' }],
         icon: [{ required: true, message: '请上传等级图标', trigger: 'change' }],
       },
     };

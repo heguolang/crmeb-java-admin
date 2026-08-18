@@ -502,18 +502,18 @@
               </el-form-item>
             </el-col>
             <el-col v-bind="grid">
-              <el-form-item label="积分：">
+              <el-form-item label="信用值：">
                 <el-input-number
                   controls-position="right"
                   v-model="formValidate.giveIntegral"
                   :min="0"
-                  placeholder="请输入赠送积分"
+                  placeholder="请输入赠送信用值"
                   :disabled="isDisabled"
                 />
               </el-form-item>
             </el-col>
             <el-col v-bind="grid">
-              <el-form-item label="是否支持积分抵扣：">
+              <el-form-item label="是否支持信用值抵扣：">
                 <el-switch
                   v-model="formValidate.isIntegral"
                   :active-value="true"

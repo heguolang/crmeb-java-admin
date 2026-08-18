@@ -1,7 +1,7 @@
 <template>
   <div class="divBox">
     <el-card class="box-card mb15" shadow="never">
-      <div slot="header"><span>积分到账方式</span></div>
+      <div slot="header"><span>信用值到账方式</span></div>
       <el-form label-width="140px" v-loading="timingLoading">
         <el-form-item label="到账方式：">
           <el-radio-group v-model="integralCreditTiming">

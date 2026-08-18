@@ -124,7 +124,7 @@
             </div>
           </div>
           <div v-if="integral.length">
-            <div class="cont">积分</div>
+            <div class="cont">信用值</div>
             <div class="Box">
               <div
                 class="cont_box"

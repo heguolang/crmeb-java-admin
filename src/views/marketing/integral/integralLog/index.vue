@@ -56,7 +56,7 @@
         <el-table-column
           sortable
           prop="balance"
-          label="积分余量"
+          label="信用值余量"
           min-width="120"
           :sort-method="
             (a, b) => {

@@ -240,10 +240,10 @@
           </template>
         </el-table-column>
         <el-table-column prop="nowMoney" label="余额" min-width="100" v-if="checkedCities.includes('余额')" />
-        <el-table-column prop="integral" label="积分" min-width="100" v-if="checkedCities.includes('积分')" />
-        <el-table-column prop="consumeVoucher" label="消费券" min-width="100" v-if="checkedCities.includes('消费券')" />
-        <el-table-column prop="warrant" label="权证" min-width="100" v-if="checkedCities.includes('权证')" />
-        <el-table-column prop="warrantAddress" label="权证地址" min-width="180" show-overflow-tooltip v-if="checkedCities.includes('权证地址')" />
+        <el-table-column prop="integral" label="信用值" min-width="100" v-if="checkedCities.includes('信用值')" />
+        <el-table-column prop="consumeVoucher" label="CCEA" min-width="100" v-if="checkedCities.includes('CCEA')" />
+        <el-table-column prop="warrant" label="CEA" min-width="100" v-if="checkedCities.includes('CEA')" />
+        <el-table-column prop="warrantAddress" label="CEA地址" min-width="180" show-overflow-tooltip v-if="checkedCities.includes('CEA地址')" />
         <el-table-column label="团队等级" min-width="120" v-if="checkedCities.includes('团队等级')">
           <template slot-scope="scope">
             <span>{{ matchTeamLevelName(scope.row.teamLevel) }}</span>
@@ -261,12 +261,12 @@
                 <el-dropdown-item
                   @click.native="editPoint(scope.row.uid)"
                   v-if="checkPermi(['admin:user:operate:founds'])"
-                  >积分余额佣金</el-dropdown-item
+                  >信用值余额佣金</el-dropdown-item
                 >
                 <el-dropdown-item
                   @click.native="editVoucherWarrant(scope.row.uid)"
                   v-if="checkPermi(['admin:user:operate:founds'])"
-                  >消费券权证</el-dropdown-item
+                  >CCEA CEA</el-dropdown-item
                 >
                 <el-dropdown-item @click.native="setBatch('group', scope.row)" v-if="checkPermi(['admin:user:group'])"
                   >设置分组</el-dropdown-item
@@ -411,9 +411,9 @@
     <el-dialog title="编辑" :visible.sync="visible" width="900px">
       <edit-from v-if="visible" :uid="uid" @resetForm="resetForm"></edit-from>
     </el-dialog>
-    <!--积分余额佣金-->
+    <!--信用值余额佣金-->
     <el-dialog
-      title="积分余额佣金"
+      title="信用值余额佣金"
       :visible.sync="VisiblePoint"
       width="540px"
       :close-on-click-modal="false"
@@ -443,13 +443,13 @@
             :max="999999"
           ></el-input-number>
         </el-form-item>
-        <el-form-item label="修改积分：" required>
+        <el-form-item label="修改信用值：" required>
           <el-radio-group v-model="PointValidateForm.integralType">
             <el-radio :label="1">增加</el-radio>
             <el-radio :label="2">减少</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="积分：" required>
+        <el-form-item label="信用值：" required>
           <el-input-number
             controls-position="right"
             type="text"
@@ -482,22 +482,22 @@
         <el-button type="primary" :loading="loadingBtn" @click="submitPointForm('PointValidateForm')">确定</el-button>
       </span>
     </el-dialog>
-    <!--消费券权证-->
+    <!--CCEA CEA-->
     <el-dialog
-      title="消费券权证"
+      title="CCEA CEA"
       :visible.sync="VisibleVoucher"
       width="540px"
       :close-on-click-modal="false"
       :before-close="handleVoucherClose"
     >
       <el-form :model="VoucherValidateForm" ref="VoucherValidateForm" label-width="100px">
-        <el-form-item label="修改消费券：">
+        <el-form-item label="修改CCEA：">
           <el-radio-group v-model="VoucherValidateForm.voucherType">
             <el-radio :label="1">增加</el-radio>
             <el-radio :label="2">减少</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="消费券：">
+        <el-form-item label="CCEA：">
           <el-input-number
             controls-position="right"
             v-model="VoucherValidateForm.voucherValue"
@@ -507,13 +507,13 @@
             :max="99999999"
           />
         </el-form-item>
-        <el-form-item label="修改权证：">
+        <el-form-item label="修改CEA：">
           <el-radio-group v-model="VoucherValidateForm.warrantType">
             <el-radio :label="1">增加</el-radio>
             <el-radio :label="2">减少</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="权证：">
+        <el-form-item label="CEA：">
           <el-input-number
             controls-position="right"
             v-model="VoucherValidateForm.warrantValue"
@@ -698,8 +698,8 @@ export default {
       idKey: 'uid',
       card_select_show: false,
       checkAll: false,
-      checkedCities: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '积分', '消费券', '权证', '权证地址', '团队等级'],
-      columnData: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '积分', '消费券', '权证', '权证地址', '团队等级'],
+      checkedCities: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '信用值', 'CCEA', 'CEA', 'CEA地址', '团队等级'],
+      columnData: ['ID', '头像', '姓名', '用户等级', '分组', '推荐人', '佣金', '手机号', '余额', '信用值', 'CCEA', 'CEA', 'CEA地址', '团队等级'],
       isIndeterminate: true,
     };
   },
@@ -1121,8 +1121,9 @@ export default {
       this.checkedCities = this.$cache.local.has('user_stroge')
         ? this.$cache.local.getJSON('user_stroge')
         : this.checkedCities;
-      // 合并新增列，避免旧缓存隐藏消费券/权证/佣金/团队等级列
-      const merged = Array.from(new Set([...(this.checkedCities || []), '消费券', '权证', '权证地址', '佣金', '团队等级']));
+      const columnRename = { 积分: '信用值', 消费券: 'CCEA', 权证: 'CEA', 权证地址: 'CEA地址' };
+      const renamedCities = (this.checkedCities || []).map((item) => columnRename[item] || item);
+      const merged = Array.from(new Set([...renamedCities, 'CCEA', 'CEA', 'CEA地址', '佣金', '团队等级']));
       this.checkedCities = merged.filter((item) => this.columnData.includes(item));
       this.$cache.local.setJSON('user_stroge', this.checkedCities);
       this.$set(this, 'card_select_show', false);
@@ -1155,10 +1156,10 @@ export default {
           '佣金',
           '手机号',
           '余额',
-          '积分',
-          '消费券',
-          '权证',
-          '权证地址',
+          '信用值',
+          'CCEA',
+          'CEA',
+          'CEA地址',
           '团队等级',
           '注册时间',
         ],

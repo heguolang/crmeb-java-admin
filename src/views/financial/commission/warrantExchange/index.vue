@@ -28,8 +28,8 @@
             <el-form-item label="兑换方式：">
               <el-select class="selWidth" v-model="tableFrom.payType" placeholder="请选择" clearable @change="getList(1)">
                 <el-option label="全部" value="" />
-                <el-option label="积分兑权证" value="integral" />
-                <el-option label="消费券兑权证" value="voucher" />
+                <el-option label="信用值兑CEA" value="integral" />
+                <el-option label="CCEA兑CEA" value="voucher" />
               </el-select>
             </el-form-item>
             <el-form-item label="用户UID：">
@@ -64,11 +64,11 @@
         </el-table-column>
         <el-table-column label="兑换方式" min-width="120">
           <template slot-scope="scope">
-            <span>{{ scope.row.payType === 'voucher' ? '消费券兑权证' : '积分兑权证' }}</span>
+            <span>{{ scope.row.payType === 'voucher' ? 'CCEA兑CEA' : '信用值兑CEA' }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="payAmount" label="消耗数量" min-width="100" />
-        <el-table-column prop="warrantAmount" label="兑换权证数量" min-width="120" />
+        <el-table-column prop="warrantAmount" label="兑换CEA数量" min-width="120" />
         <el-table-column prop="address" label="地址" min-width="200" show-overflow-tooltip />
         <el-table-column label="状态" width="100">
           <template slot-scope="scope">
@@ -162,14 +162,14 @@ export default {
               : Number(this.tableFrom.status),
         },
         dateLimit: dateLimit || this.tableFrom.dateLimit,
-        filename: '权证兑换导出',
-        header: ['ID', 'UID', '用户名', '兑换方式', '消耗数量', '兑换权证数量', '地址', '状态', '申请时间'],
+        filename: 'CEA兑换导出',
+        header: ['ID', 'UID', '用户名', '兑换方式', '消耗数量', '兑换CEA数量', '地址', '状态', '申请时间'],
         filterVal: ['id', 'uid', 'nickname', 'payTypeText', 'payAmount', 'warrantAmount', 'address', 'statusText', 'createTime'],
         mapRow: (row) => ({
           id: row.id,
           uid: row.uid,
           nickname: row.nickname || '',
-          payTypeText: row.payType === 'voucher' ? '消费券兑权证' : '积分兑权证',
+          payTypeText: row.payType === 'voucher' ? 'CCEA兑CEA' : '信用值兑CEA',
           payAmount: row.payAmount,
           warrantAmount: row.warrantAmount,
           address: row.address || '',
