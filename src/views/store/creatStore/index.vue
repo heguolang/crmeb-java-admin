@@ -525,30 +525,6 @@
               </el-form-item>
             </el-col>
             <el-col v-bind="grid">
-              <el-form-item label="是否参与分销：">
-                <el-switch
-                  v-model="formValidate.isBrokerage"
-                  :active-value="true"
-                  :inactive-value="false"
-                  active-text="参与"
-                  inactive-text="不参与"
-                  :disabled="isDisabled"
-                />
-              </el-form-item>
-            </el-col>
-            <el-col v-bind="grid">
-              <el-form-item label="是否参与团队奖：">
-                <el-switch
-                  v-model="formValidate.isTeamBrokerage"
-                  :active-value="true"
-                  :inactive-value="false"
-                  active-text="参与"
-                  inactive-text="不参与"
-                  :disabled="isDisabled"
-                />
-              </el-form-item>
-            </el-col>
-            <el-col v-bind="grid">
               <el-form-item label="虚拟销量：">
                 <el-input-number
                   controls-position="right"
@@ -1597,6 +1573,9 @@ export default {
           return;
         }
         if (!prepared) return;
+        // 分销/团队奖固定参与，后台开关已隐藏
+        this.formValidate.isBrokerage = true;
+        this.formValidate.isTeamBrokerage = true;
         this.fullscreenLoading = true;
         this.$route.params.id
           ? productUpdateApi(this.formValidate)
