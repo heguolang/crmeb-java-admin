@@ -137,3 +137,29 @@ export function teamBrokerageRecordListApi(params) {
     params,
   });
 }
+
+/** 团队奖资金记录 -- 统计汇总 */
+export function teamBrokerageRecordStatsApi(params) {
+  return request({
+    url: '/admin/system/team/level/brokerage/record/stats',
+    method: 'get',
+    params,
+  });
+}
+
+/** 团队奖资金记录 -- 漏发补发（按订单号） */
+export function teamBrokerageRecordReissueApi(orderNo) {
+  return request({
+    url: `/admin/system/team/level/brokerage/record/reissue/${orderNo}`,
+    method: 'post',
+  });
+}
+
+/** 团队奖资金记录 -- 漏发检测（只读扫描） */
+export function teamBrokerageRecordAuditApi(params) {
+  return request({
+    url: '/admin/system/team/level/brokerage/record/audit',
+    method: 'get',
+    params,
+  });
+}
