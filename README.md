@@ -56,7 +56,7 @@ utils 自定义工具js 独立命名，一般不用新建文件夹
 ├─ user 用户管理
 ├─ content 内容管理
 ├─ appSetting 各个应用模块功能管理公众号、小程序、支付宝、百度小程序、今日头条小程序 
-├─ marketing 营销管理 优惠劵 积分 秒杀
+├─ marketing 营销管理 优惠劵 信用值 秒杀
 ├─ sms 设置 短信设置
 ├─ systemSetting 设置 管理员权限 系统设置 物流设置
 ├─ maintain 维护 配置分类 组合数据 表单配置

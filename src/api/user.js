@@ -142,7 +142,7 @@ export function tagPiApi(params) {
 }
 
 /**
- * 会员管理 积分余额
+ * 会员管理 信用值余额
  * @param pram
  */
 export function foundsApi(params) {

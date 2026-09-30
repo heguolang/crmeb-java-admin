@@ -107,7 +107,7 @@ export function couponUserListApi(params) {
 }
 
 /**
- * 积分日志 列表
+ * 信用值日志 列表
  * @param pram
  */
 export function integralListApi(params, data) {

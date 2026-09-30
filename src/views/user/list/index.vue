@@ -902,7 +902,7 @@ export default {
       };
       this.teamLevelVisible = true;
     },
-    // 积分余额
+    // 信用值余额
     editPoint(id) {
       this.uid = id;
       this.VisiblePoint = true;
@@ -935,7 +935,7 @@ export default {
         uid: '',
       };
     },
-    // 积分余额
+    // 信用值余额
     submitPointForm: Debounce(function (formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
@@ -956,7 +956,7 @@ export default {
         }
       });
     }),
-    // 积分余额
+    // 信用值余额
     handlePointClose() {
       this.VisiblePoint = false;
       this.PointValidateForm = {

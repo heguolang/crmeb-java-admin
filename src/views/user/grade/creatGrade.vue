@@ -80,7 +80,7 @@
         </el-col>
       </el-row>
 
-      <!-- 第四行：享受折扣 + 赠送积分 -->
+      <!-- 第四行：享受折扣 + 赠送信用值 -->
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="享受折扣(%)：" prop="discount">

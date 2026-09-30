@@ -167,7 +167,7 @@ export default {
         this.statisticData[6].num = res.totalSalesAmount; //总销售额
         this.statisticData[7].num = res.totalBrokerageAmount; //当前佣金
         this.statisticData[8].num = res.totalBalanceAmount; //当前余额
-        this.statisticData[9].num = res.totalIntegral; //当前积分
+        this.statisticData[9].num = res.totalIntegral; //当前信用值
         this.statisticData[10].num = res.totalConsumeVoucher; //当前消费券
         this.statisticData[11].num = res.totalWarrant; //当前MLSS
       });
