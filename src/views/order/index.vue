@@ -367,6 +367,23 @@
 
     <!--立即退款-->
     <el-dialog title="退款处理" :visible.sync="refundVisible" width="500px" :before-close="refundhandleClose">
+      <el-form label-width="90px" style="padding-right:10px">
+        <el-form-item label="退款方式">
+          <el-radio-group v-model="refundMode">
+            <el-radio :label="2" style="display:block;margin:0 0 8px">
+              退款到余额
+              <span style="color:#e6a23c;font-size:12px">（推荐：商户号受限期间，款项立即退入用户余额账户）</span>
+            </el-radio>
+            <el-radio :label="1" style="display:block;margin:0">
+              原路退回
+              <span style="color:#909399;font-size:12px">（沿微信支付原路退回用户零钱，需商户号功能正常）</span>
+            </el-radio>
+          </el-radio-group>
+          <div v-if="refundMode === 1" style="background:#fdf6ec;border:1px solid #f3d9a4;color:#8a6116;font-size:12px;border-radius:4px;padding:6px 10px;margin-top:6px">
+            原路退回失败时可改用「退款到余额」重试
+          </div>
+        </el-form-item>
+      </el-form>
       <zb-parser
         :form-id="107"
         :is-create="1"
@@ -391,6 +408,7 @@ import {
   orderDeleteApi,
   orderRefuseApi,
   orderRefundApi,
+  orderRefundModeApi,
   orderPrint,
   orderDetailApi,
 } from '@/api/order';
@@ -430,6 +448,7 @@ export default {
       orderId: '',
       refundVisible: false,
       refundData: {},
+      refundMode: 2,
       dialogVisibleJI: false,
       tableDataLog: {
         data: [],
@@ -605,11 +624,17 @@ export default {
         type: '',
       };
       this.orderids = row.orderId;
+      // 退款方式默认取系统配置（1=原路退回 2=退款到余额）
+      orderRefundModeApi().then((res) => {
+        this.refundMode = (res.data && Number(res.data) === 1) ? 1 : 2;
+      }).catch(() => {
+        this.refundMode = 2;
+      });
       this.refundVisible = true;
     },
     refundhandlerSubmit(formValue) {
-      orderRefundApi({ amount: formValue.amount, orderNo: this.orderids }).then((data) => {
-        this.$message.success('操作成功');
+      orderRefundApi({ amount: formValue.amount, orderNo: this.orderids, refundMode: this.refundMode }).then((data) => {
+        this.$message.success(this.refundMode === 2 ? '退款成功，款项已退入用户余额' : '操作成功');
         this.refundVisible = false;
         this.getList();
       });

@@ -143,6 +143,16 @@ export function orderRefundApi(params) {
 }
 
 /**
+ * 获取系统默认退款方式（1=原路退回 2=退款到余额）
+ */
+export function orderRefundModeApi() {
+  return request({
+    url: '/admin/store/order/refund/mode',
+    method: 'get',
+  });
+}
+
+/**
  * 订单 核销订单
  * @param prams
  */
